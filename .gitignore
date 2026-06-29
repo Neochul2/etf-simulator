@@ -1,5 +1,33 @@
-.env
-venv/
-.venv/
+# Python
 __pycache__/
-*.pyc
+*.py[cod]
+*.pyo
+.venv/
+venv/
+*.egg-info/
+dist/
+build/
+.env
+
+# CSV 데이터
+*.csv
+
+# Java / Maven
+target/
+*.class
+*.jar
+*.war
+*.ear
+
+# Eclipse / eGovFrame
+.classpath
+.project
+.settings/
+.factorypath
+*.launch
+.metadata/
+generated/
+
+# IDE
+.vscode/
+.idea/
