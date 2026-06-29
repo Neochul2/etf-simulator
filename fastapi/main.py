@@ -1,5 +1,5 @@
 from fastapi import FastAPI
-from routers import etf, exchange
+from routers import exchange
 
 app = FastAPI(
     title="미국 월배당 ETF 시뮬레이터 API",
@@ -7,7 +7,6 @@ app = FastAPI(
     version="1.0.0",
 )
 
-app.include_router(etf.router)
 app.include_router(exchange.router)
 
 
