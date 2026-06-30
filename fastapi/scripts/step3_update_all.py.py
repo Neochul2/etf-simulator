@@ -1,7 +1,8 @@
 """
-update_etf_price.py — DB에 있는 100개 티커 기준으로 Polygon에서 최신 가격/배당 재조회 → 업서트
+step3_update_etf_price.py — DB에 있는 100개 티커 기준으로 Polygon에서 최신 가격/배당 재조회 → 업서트
++ 한국수출입은행 환율도 같이 업서트
 CSV 사용 안 함 (반복 실행용)
-실행: python scripts/update_etf_price.py
+실행: python scripts/step3_update_etf_price.py
 """
 import requests
 import time
@@ -13,6 +14,7 @@ sys.path.append(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 
 from config import POLYGON_API_KEY
 from database import get_connection
+from services.koreaexim import get_usdkrw
 
 
 def get_price(ticker):
@@ -41,9 +43,25 @@ def get_dividends_12m(ticker):
     return r.json().get("results", [])
 
 
-# 1. DB에서 기존 티커 목록만 가져오기 (CSV 사용 안 함)
 conn = get_connection()
 cursor = conn.cursor()
+
+# 0. 환율 먼저 업서트 (한국수출입은행)
+print("환율 조회 중...")
+try:
+    rate_data = get_usdkrw()
+    rate_date = f"{rate_data['date'][:4]}-{rate_data['date'][4:6]}-{rate_data['date'][6:8]}"
+    cursor.execute("""
+        INSERT INTO exchange_rate (base_cur, target_cur, rate, rate_date)
+        VALUES (%s, %s, %s, %s)
+        ON DUPLICATE KEY UPDATE rate = VALUES(rate)
+    """, (rate_data["base"], rate_data["target"], rate_data["rate"], rate_date))
+    conn.commit()
+    print(f"✅ USD/KRW = {rate_data['rate']} (기준일: {rate_data['date']}) 업서트 완료\n")
+except Exception as e:
+    print(f"❌ 환율 적재 실패: {e}\n")
+
+# 1. DB에서 기존 티커 목록만 가져오기 (CSV 사용 안 함)
 cursor.execute("SELECT symbol FROM etf_info")
 tickers = [row[0] for row in cursor.fetchall()]
 print(f"갱신 대상: {len(tickers)}개 (기존 etf_info 기준)")
