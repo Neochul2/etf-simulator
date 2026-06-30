@@ -1,6 +1,6 @@
 """
 load_etf_master.py — CSV에서 시총 상위 100개 추출 후 Polygon으로 재수집 → MySQL 증분 업서트
-실행: python scripts/load_etf_master.py
+실행: python scripts/step1_load_etf_master.py
 """
 import requests
 import pandas as pd
@@ -51,14 +51,13 @@ def get_dividends_12m(ticker):
     return r.json().get("results", [])
 
 
-# 1. CSV 로드 + 시총 상위 100개 추출
+# 1. CSV 로드 + 시총 상위 100개 추출 (정렬용으로만 사용, DB엔 저장 안 함)
 print("CSV 로드 중...")
 df = pd.read_csv(CSV_PATH, header=1)
 df.columns = df.columns.str.strip()
 df["assets_num"] = df["Assets"].apply(parse_assets)
 top100 = df.sort_values("assets_num", ascending=False).head(TOP_N)
 tickers = top100["Symbol"].tolist()
-assets_map = dict(zip(top100["Symbol"], top100["assets_num"]))
 print(f"시총 상위 {len(tickers)}개 추출 완료")
 print(f"상위 5개: {tickers[:5]}")
 
@@ -67,7 +66,7 @@ conn = get_connection()
 cursor = conn.cursor()
 
 # 3. Polygon 수집 + 업서트
-print(f"\nPolygon 수집 시작 (약 43분 소요)\n")
+print(f"\nPolygon 수집 시작\n")
 print(f"{'NO':<4} {'티커':<8} {'가격':>8} {'연배당':>10} {'배당률':>8} {'횟수':>5}")
 print("-" * 50)
 
@@ -76,11 +75,10 @@ failed = []
 
 sql = """
 INSERT INTO etf_info
-    (symbol, assets, price, annual_div, div_yield, div_count, updated_at)
+    (symbol, price, annual_div, div_yield, div_count, updated_at)
 VALUES
-    (%s, %s, %s, %s, %s, %s, %s)
+    (%s, %s, %s, %s, %s, %s)
 ON DUPLICATE KEY UPDATE
-    assets     = VALUES(assets),
     price      = VALUES(price),
     annual_div = VALUES(annual_div),
     div_yield  = VALUES(div_yield),
@@ -106,7 +104,6 @@ for i, ticker in enumerate(tickers, 1):
 
         cursor.execute(sql, (
             ticker,
-            int(assets_map.get(ticker, 0)),
             round(price, 2),
             round(annual_div, 4),
             div_yield,
