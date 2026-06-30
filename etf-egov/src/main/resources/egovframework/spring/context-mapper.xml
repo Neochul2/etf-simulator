@@ -10,9 +10,10 @@
         <property name="mapperLocations" value="classpath:/egovframework/mapper/*.xml"/>
     </bean>
 
-    <!-- Mapper 인터페이스 패키지 스캔 -->
-    <bean class="org.egovframe.rte.psl.dataaccess.mapper.MapperConfigurer">
+    <!-- Mapper 인터페이스 패키지 스캔 (MyBatis-Spring 표준 클래스 직접 사용) -->
+    <bean class="org.mybatis.spring.mapper.MapperScannerConfigurer">
         <property name="basePackage" value="com.kopo.etf.mapper"/>
+        <property name="sqlSessionFactoryBeanName" value="sqlSession"/>
     </bean>
 
 </beans>
