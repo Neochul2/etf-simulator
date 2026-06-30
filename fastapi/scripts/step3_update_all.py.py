@@ -88,9 +88,8 @@ for i, ticker in enumerate(tickers, 1):
     print(f"[{i:>3}/{len(tickers)}] {ticker:<8}", end=" ", flush=True)
     try:
         price = get_price(ticker)
-        time.sleep(13)
         divs = get_dividends_12m(ticker)
-        time.sleep(13)
+        time.sleep(12)
 
         if price is None:
             print("가격 없음")
