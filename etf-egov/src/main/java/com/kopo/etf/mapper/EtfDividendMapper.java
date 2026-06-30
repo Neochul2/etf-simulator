@@ -10,7 +10,12 @@ import com.kopo.etf.vo.EtfDividendVO;
  */
 public interface EtfDividendMapper {
 
-    /** 특정 ETF의 최근 6개월 배당 내역 조회 (화면1) */
+    /**
+     * 특정 ETF의 최근 6개월 배당 내역 조회 (화면1)
+     * 테이블정의서 기준: ex_div_date DESC LIMIT 6
+     * @param symbol 조회할 ETF 티커
+     * @return 최근 배당 내역 리스트 (최신순)
+     */
     List<EtfDividendVO> selectRecentDividends(String symbol);
 
 }

@@ -2,9 +2,17 @@
 <!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
     "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
 
+<!--
+    etf_info 테이블 SQL 정의
+    namespace는 반드시 대응되는 Mapper 인터페이스의 풀패키지명과 일치해야 함
+-->
 <mapper namespace="com.kopo.etf.mapper.EtfInfoMapper">
 
-    <!-- 티커 심볼로 ETF 단건 조회 (화면1) -->
+    <!--
+        티커 심볼로 ETF 단건 조회 (화면1)
+        id는 EtfInfoMapper.java의 selectEtfInfo 메서드명과 정확히 일치해야 매핑됨
+        DB 컬럼(snake_case)과 VO 필드(camelCase)가 다르므로 AS 별칭으로 맞춰줌
+    -->
     <select id="selectEtfInfo" parameterType="String" resultType="com.kopo.etf.vo.EtfInfoVO">
         SELECT
             symbol,
