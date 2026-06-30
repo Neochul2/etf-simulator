@@ -1,0 +1,21 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+    "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<mapper namespace="com.kopo.etf.mapper.EtfInfoMapper">
+
+    <!-- 티커 심볼로 ETF 단건 조회 (화면1) -->
+    <select id="selectEtfInfo" parameterType="String" resultType="com.kopo.etf.vo.EtfInfoVO">
+        SELECT
+            symbol,
+            price,
+            annual_div   AS annualDiv,
+            div_yield    AS divYield,
+            div_count    AS divCount,
+            updated_at   AS updatedAt,
+            created_at   AS createdAt
+        FROM etf_info
+        WHERE symbol = #{symbol}
+    </select>
+
+</mapper>
