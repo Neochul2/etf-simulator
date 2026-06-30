@@ -8,6 +8,7 @@ venv/
 dist/
 build/
 .env
+__init__
 
 # CSV 데이터
 *.csv

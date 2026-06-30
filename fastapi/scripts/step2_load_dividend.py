@@ -1,5 +1,5 @@
 """
-load_dividend.py — 적재된 100개 ETF의 배당 내역을 etf_dividend 테이블에 저장
+load_dividend.py — 적재된 100개 ETF의 배당 내역을 etf_dividend 테이블에 증분 업서트
 실행: python scripts/load_dividend.py
 """
 import requests
@@ -37,12 +37,7 @@ cursor.execute("SELECT symbol FROM etf_info")
 tickers = [row[0] for row in cursor.fetchall()]
 print(f"대상 종목: {len(tickers)}개")
 
-# 2. 기존 데이터 삭제
-cursor.execute("DELETE FROM etf_dividend")
-conn.commit()
-print("기존 etf_dividend 데이터 삭제 완료")
-
-# 3. Polygon 수집 + 적재
+# 2. Polygon 수집 + 업서트 (삭제 없음 — 증분 적재)
 sql = """
 INSERT INTO etf_dividend
     (symbol, ex_div_date, pay_date, cash_amount)
