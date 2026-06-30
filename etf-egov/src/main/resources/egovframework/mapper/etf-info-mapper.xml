@@ -25,5 +25,21 @@
         FROM etf_info
         WHERE symbol = #{symbol}
     </select>
+    
+    <!-- 전체 ETF 목록 조회 (화면1 드롭다운용) -->
+    <select id="selectAllEtfList" resultType="com.kopo.etf.vo.EtfInfoVO">
+        SELECT
+            symbol,
+            price,
+            annual_div   AS annualDiv,
+            div_yield    AS divYield,
+            div_count    AS divCount,
+            updated_at   AS updatedAt,
+            created_at   AS createdAt
+        FROM etf_info
+        ORDER BY div_yield DESC
+    </select>
+    
+    
 
 </mapper>

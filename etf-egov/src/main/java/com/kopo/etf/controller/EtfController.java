@@ -29,15 +29,20 @@ public class EtfController {
     @GetMapping("/etf/{symbol}/detail.do")
     @ResponseBody
     public Map<String, Object> detail(@PathVariable("symbol") String symbol) {
-
         EtfInfoVO info = etfInfoService.getEtfInfo(symbol);
         List<EtfDividendVO> dividends = etfInfoService.getRecentDividends(symbol);
 
         Map<String, Object> result = new HashMap<>();
         result.put("info", info);
         result.put("dividends", dividends);
-
         return result;
+    }
+
+    /** 전체 ETF 목록 조회 (드롭다운용) */
+    @GetMapping("/etf/symbols.do")
+    @ResponseBody
+    public List<EtfInfoVO> symbols() {
+        return etfInfoService.getAllEtfList();
     }
 
 }

@@ -15,5 +15,9 @@ public interface EtfInfoService {
 
     /** 특정 ETF의 최근 6개월 배당 내역 조회 */
     List<EtfDividendVO> getRecentDividends(String symbol);
+    
+    
+    /** 전체 ETF 목록 조회 (드롭다운용) */
+    List<EtfInfoVO> getAllEtfList();
 
 }

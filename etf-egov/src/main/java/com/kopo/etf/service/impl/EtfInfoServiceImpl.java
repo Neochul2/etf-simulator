@@ -33,5 +33,10 @@ public class EtfInfoServiceImpl implements EtfInfoService {
     public List<EtfDividendVO> getRecentDividends(String symbol) {
         return etfDividendMapper.selectRecentDividends(symbol);
     }
+    
+    @Override
+    public List<EtfInfoVO> getAllEtfList() {
+        return etfInfoMapper.selectAllEtfList();
+    }
 
 }
