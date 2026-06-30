@@ -1,0 +1,24 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+    "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<mapper namespace="com.kopo.etf.mapper.ExchangeRateMapper">
+
+    <!--
+        최신 환율 1건 조회
+        테이블정의서 5-2 참고사항: rate_date 최신 1건 (ORDER BY rate_date DESC LIMIT 1)
+    -->
+    <select id="selectLatestRate" resultType="com.kopo.etf.vo.ExchangeRateVO">
+        SELECT
+            id,
+            base_cur     AS baseCur,
+            target_cur   AS targetCur,
+            rate,
+            rate_date    AS rateDate,
+            created_at   AS createdAt
+        FROM exchange_rate
+        ORDER BY rate_date DESC
+        LIMIT 1
+    </select>
+
+</mapper>
