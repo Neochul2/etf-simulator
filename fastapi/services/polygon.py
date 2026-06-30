@@ -31,17 +31,15 @@ def get_etf_detail(ticker: str, db_conn) -> dict:
     return row
 
 
-def get_etf_dividends(ticker: str) -> list:
-    """Polygon.io에서 ETF 배당 내역 조회"""
-    r = requests.get(
-        "https://api.polygon.io/v3/reference/dividends",
-        params={
-            "ticker": ticker.upper(),
-            "limit": 12,
-            "order": "desc",
-            "apiKey": POLYGON_API_KEY,
-        },
-        timeout=10,
-    )
-    data = r.json()
-    return data.get("results", [])
+def get_etf_dividends(ticker: str, db_conn) -> list:
+    """DB에서 ETF 배당 내역 조회 (최근 12개월, 최신순)"""
+    cursor = db_conn.cursor(dictionary=True)
+    cursor.execute("""
+        SELECT symbol, ex_div_date, pay_date, cash_amount
+        FROM etf_dividend
+        WHERE symbol = %s
+        ORDER BY ex_div_date DESC
+    """, (ticker.upper(),))
+    rows = cursor.fetchall()
+    cursor.close()
+    return rows

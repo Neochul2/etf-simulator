@@ -41,9 +41,15 @@ def etf_detail(ticker: str):
 
 @router.get("/{ticker}/dividends")
 def etf_dividends(ticker: str):
-    """ETF 배당 내역 조회"""
+    """ETF 배당 내역 조회 (DB 기준)"""
     try:
-        result = get_etf_dividends(ticker)
+        conn = get_connection()
+        result = get_etf_dividends(ticker, conn)
+        conn.close()
+        if not result:
+            raise HTTPException(status_code=404, detail=f"{ticker} 배당 내역을 찾을 수 없습니다.")
         return result
+    except HTTPException:
+        raise
     except Exception as e:
         raise HTTPException(status_code=500, detail=str(e))

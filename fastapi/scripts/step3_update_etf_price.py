@@ -44,7 +44,7 @@ def get_dividends_12m(ticker):
 # 1. DB에서 기존 티커 목록만 가져오기 (CSV 사용 안 함)
 conn = get_connection()
 cursor = conn.cursor()
-cursor.execute("SELECT symbol FROM etf_info")
+cursor.execute("SELECT symbol FROM etf_info LIMIT 3")
 tickers = [row[0] for row in cursor.fetchall()]
 print(f"갱신 대상: {len(tickers)}개 (기존 etf_info 기준)")
 
