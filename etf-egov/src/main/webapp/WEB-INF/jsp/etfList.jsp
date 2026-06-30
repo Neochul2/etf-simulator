@@ -1,5 +1,4 @@
-<%@ page language="java" contentType="text/html; charset=UTF-8"
-	pageEncoding="UTF-8"%>
+<%@ page language="java" contentType="text/html; charset=UTF-8" pageEncoding="UTF-8"%>
 <!DOCTYPE html>
 <html lang="ko">
 <head>
@@ -182,10 +181,10 @@ function loadSymbolList() {
 
 document.getElementById('symbolSelect').addEventListener('change', function() {
     if (this.value) {
-        document.getElementById('searchInput').value = this.value;
         searchEtf(this.value);
     }
 });
+
 document.getElementById('searchBtn').addEventListener('click', function() {
     runSearch();
 });
