@@ -232,6 +232,10 @@ function loadEtfInfo(symbol) {
             document.getElementById('divYield').innerText = currentDivYield + '%';
             document.getElementById('afterTaxYield').innerText =
                 (currentDivYield * (1 - 0.154)).toFixed(2) + '%';
+            
+
+            // 검색창 → 드롭다운 동기화 추가
+            document.getElementById('symbolSelect').value = symbol;
 
             updateUsdConverted();
         })
