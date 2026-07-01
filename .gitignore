@@ -15,6 +15,7 @@ __init__
 
 # Java / Maven
 target/
+bin/
 *.class
 *.jar
 *.war
