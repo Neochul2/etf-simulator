@@ -10,10 +10,14 @@ body { background-color: #f8f9fa; }
 .navbar-brand { font-weight: bold; }
 .nav-link.active { border-bottom: 3px solid #0d6efd; font-weight: bold; }
 .badge-screen { background-color: #0d6efd; }
-.card-info { background: #fff; border-radius: 8px; padding: 16px; text-align: center; }
+.card-info { background: #f8f9fa; border-radius: 8px; padding: 12px; text-align: center; }
 .logo-box { width: 64px; height: 64px; background: #4338ca; color: #fff;
     display: flex; align-items: center; justify-content: center;
     font-weight: bold; border-radius: 10px; }
+.info-row { border-top: 1px solid #e9ecef; padding-top: 12px; margin-top: 12px; }
+.info-item { text-align: center; }
+.info-item .label { font-size: 0.75rem; color: #6c757d; margin-bottom: 2px; }
+.info-item .value { font-size: 0.95rem; font-weight: 600; }
 </style>
 </head>
 <body>
@@ -59,18 +63,21 @@ body { background-color: #f8f9fa; }
 
         <div class="card shadow-sm mb-4">
             <div class="card-body">
+
+                <%-- ETF 헤더 (로고 + 이름) --%>
                 <div class="d-flex align-items-center mb-4">
                     <div class="logo-box me-3" id="logoBox">--</div>
                     <div>
                         <h4 class="mb-1" id="etfName">-</h4>
+                        <div class="mb-1" id="issuerName" style="color:#6c757d; font-size:0.9rem;"></div>
                         <span class="badge bg-primary" id="symbolBadge">-</span>
                         <span class="badge bg-light text-dark">미국</span>
-                        <span class="badge bg-light text-dark">NASDAQ</span>
                         <span class="badge bg-light text-dark">USD</span>
                     </div>
                 </div>
 
-                <div class="row text-center g-3">
+                <%-- 1행: 현재가 / 배당률 / 배당락일 / 지급일 --%>
+                <div class="row text-center g-3 mb-3">
                     <div class="col-md-3">
                         <div class="card-info">
                             <div class="text-muted small">현재가 (USD)</div>
@@ -96,6 +103,35 @@ body { background-color: #f8f9fa; }
                         </div>
                     </div>
                 </div>
+
+                <%-- 2행: 시작가 / 고가 / 저가 / 거래량 --%>
+                <div class="row text-center g-2 info-row">
+                    <div class="col-3">
+                        <div class="info-item">
+                            <div class="label">시작가</div>
+                            <div class="value" id="openPrice">-</div>
+                        </div>
+                    </div>
+                    <div class="col-3">
+                        <div class="info-item">
+                            <div class="label">고가</div>
+                            <div class="value text-danger" id="highPrice">-</div>
+                        </div>
+                    </div>
+                    <div class="col-3">
+                        <div class="info-item">
+                            <div class="label">저가</div>
+                            <div class="value text-primary" id="lowPrice">-</div>
+                        </div>
+                    </div>
+                    <div class="col-3">
+                        <div class="info-item">
+                            <div class="label">거래량</div>
+                            <div class="value" id="volume">-</div>
+                        </div>
+                    </div>
+                </div>
+
             </div>
         </div>
 
@@ -125,14 +161,13 @@ body { background-color: #f8f9fa; }
 <script>
 var contextPath = '<%=request.getContextPath()%>';
 var currentSymbol = '';
-var exchangeRateValue = 0; // DB 환율 (1일 1회 업데이트)
+var exchangeRateValue = 0;
 
 window.addEventListener('DOMContentLoaded', function() {
     loadExchangeRate();
     loadSymbolList();
 });
 
-// DB에서 최신 환율 조회
 function loadExchangeRate() {
     fetch(contextPath + '/exchange/latest.do')
         .then(function(res) { return res.json(); })
@@ -155,7 +190,6 @@ function loadSymbolList() {
         });
 }
 
-// 드롭다운 선택 → 검색창 동기화
 document.getElementById('symbolSelect').addEventListener('change', function() {
     if (this.value) {
         document.getElementById('searchInput').value = this.value;
@@ -168,16 +202,12 @@ document.getElementById('searchBtn').addEventListener('click', function() {
 });
 
 document.getElementById('searchInput').addEventListener('keypress', function(e) {
-    if (e.key === 'Enter') {
-        runSearch();
-    }
+    if (e.key === 'Enter') { runSearch(); }
 });
 
 function runSearch() {
     var symbol = document.getElementById('searchInput').value.trim().toUpperCase();
-    if (symbol) {
-        searchEtf(symbol);
-    }
+    if (symbol) { searchEtf(symbol); }
 }
 
 function searchEtf(symbol) {
@@ -203,19 +233,32 @@ function renderEtf(data) {
     document.getElementById('logoBox').innerText = info.symbol;
     document.getElementById('symbolBadge').innerText = info.symbol;
     document.getElementById('etfName').innerText = info.symbol;
-    document.getElementById('price').innerText = '$' + info.price;
-    document.getElementById('divYield').innerText = info.divYield + '%';
     document.getElementById('updatedAt').innerText = 'Polygon.io 기준 · ' + info.updatedAt + ' 업데이트';
 
-    // 검색창 → 드롭다운 양방향 동기화
+    // 검색창 · 드롭다운 양방향 동기화
     document.getElementById('searchInput').value = info.symbol;
     document.getElementById('symbolSelect').value = info.symbol;
 
+    // 기존 정보
+    document.getElementById('price').innerText = '$' + info.price;
+    document.getElementById('divYield').innerText = info.divYield + '%';
+
+    // ETF 이름 (issuer)
+    document.getElementById('issuerName').innerText = info.issuer || '';
+
+    // OHLCV
+    document.getElementById('openPrice').innerText = '$' + (info.openPrice || '-');
+    document.getElementById('highPrice').innerText = '$' + (info.highPrice || '-');
+    document.getElementById('lowPrice').innerText  = '$' + (info.lowPrice  || '-');
+    document.getElementById('volume').innerText    = info.volume ? Number(info.volume).toLocaleString() : '-';
+
+    // 배당락일 · 지급일
     if (dividends.length > 0) {
         document.getElementById('exDivDate').innerText = dividends[0].exDivDate;
-        document.getElementById('payDate').innerText = dividends[0].payDate;
+        document.getElementById('payDate').innerText   = dividends[0].payDate;
     }
 
+    // 배당 내역 테이블
     var tbody = document.getElementById('dividendTableBody');
     tbody.innerHTML = '';
     dividends.forEach(function(d) {
