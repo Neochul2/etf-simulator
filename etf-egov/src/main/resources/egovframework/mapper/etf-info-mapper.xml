@@ -9,14 +9,19 @@
 <mapper namespace="com.kopo.etf.mapper.EtfInfoMapper">
 
     <!--
-        티커 심볼로 ETF 단건 조회 (화면1)
-        id는 EtfInfoMapper.java의 selectEtfInfo 메서드명과 정확히 일치해야 매핑됨
-        DB 컬럼(snake_case)과 VO 필드(camelCase)가 다르므로 AS 별칭으로 맞춰줌
+        티커 심볼로 ETF 단건 조회 (화면1·2·3)
+        DB 컬럼(snake_case) → VO 필드(camelCase) AS 별칭으로 매핑
+        신규: open_price, high_price, low_price, volume, issuer 추가
     -->
     <select id="selectEtfInfo" parameterType="String" resultType="com.kopo.etf.vo.EtfInfoVO">
         SELECT
             symbol,
             price,
+            open_price   AS openPrice,
+            high_price   AS highPrice,
+            low_price    AS lowPrice,
+            volume,
+            issuer,
             annual_div   AS annualDiv,
             div_yield    AS divYield,
             div_count    AS divCount,
@@ -25,12 +30,21 @@
         FROM etf_info
         WHERE symbol = #{symbol}
     </select>
-    
-    <!-- 전체 ETF 목록 조회 (화면1 드롭다운용) -->
+
+    <!--
+        전체 ETF 목록 조회 (화면1·2·3 드롭다운용)
+        드롭다운에는 symbol, divYield만 사용하지만
+        일관성을 위해 전체 컬럼 조회
+    -->
     <select id="selectAllEtfList" resultType="com.kopo.etf.vo.EtfInfoVO">
         SELECT
             symbol,
             price,
+            open_price   AS openPrice,
+            high_price   AS highPrice,
+            low_price    AS lowPrice,
+            volume,
+            issuer,
             annual_div   AS annualDiv,
             div_yield    AS divYield,
             div_count    AS divCount,
@@ -39,7 +53,5 @@
         FROM etf_info
         ORDER BY div_yield DESC
     </select>
-    
-    
 
 </mapper>
