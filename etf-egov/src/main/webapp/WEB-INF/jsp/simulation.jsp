@@ -158,6 +158,8 @@ var contextPath = '<%=request.getContextPath()%>';
 var currentSymbol = '';
 var selectedMonths = 60;
 var exchangeRateValue = 0;
+var currentDivYield = 0;    // 저장 시 사용할 배당률
+var lastSimResult = null;   // 마지막 시뮬레이션 결과 — 저장 시 사용
 
 window.addEventListener('DOMContentLoaded', function() {
     loadExchangeRate();
@@ -208,6 +210,7 @@ function loadEtfInfo(symbol) {
             document.getElementById('afterTaxYield').innerText =
                 (info.divYield * (1 - 0.154)).toFixed(2) + '%';
 
+            currentDivYield = info.divYield; // 저장 시 사용
             updateUsdConverted();
         })
         .catch(function() {
@@ -285,9 +288,11 @@ function renderResult(r) {
 
     document.getElementById('totalDividendKrw').innerText = totalDividendKrw.toLocaleString() + ' 원';
     document.getElementById('totalDividendUsd').innerText = '(약 $' + r.totalDividend.toFixed(2) + ')';
-
     document.getElementById('finalAssetsKrw').innerText = finalAssetsKrw.toLocaleString() + ' 원';
     document.getElementById('finalAssetsUsd').innerText = '(약 $' + r.finalAssets.toFixed(2) + ')';
+
+    // 저장 버튼용 결과 보관
+    lastSimResult = r;
 }
 
 document.getElementById('resetBtn').addEventListener('click', function() {
@@ -302,10 +307,51 @@ document.getElementById('resetBtn').addEventListener('click', function() {
     });
     document.querySelector('.period-btn[data-months="60"]').classList.add('active');
     updateUsdConverted();
+    lastSimResult = null; // 결과 초기화
 });
 
 document.getElementById('saveBtn').addEventListener('click', function() {
-    alert('결과 저장 기능은 추후 제공될 예정입니다.');
+    if (!currentSymbol) {
+        alert('종목을 먼저 선택해주세요.');
+        return;
+    }
+    if (!lastSimResult) {
+        alert('시뮬레이션을 먼저 실행해주세요.');
+        return;
+    }
+
+    var isMonthlyInvest = document.getElementById('monthly').checked;
+    var initialAmountKrw = parseFloat(document.getElementById('initialAmount').value) || 0;
+    var monthlyAmountKrw = parseFloat(document.getElementById('monthlyAmount').value) || 0;
+    var initialAmtUsd = (initialAmountKrw / exchangeRateValue).toFixed(2);
+    var monthlyAmtUsd = isMonthlyInvest ? (monthlyAmountKrw / exchangeRateValue).toFixed(2) : 0;
+
+    // POST 파라미터 구성
+    var params = new URLSearchParams();
+    params.append('investType', isMonthlyInvest ? 'monthly' : 'lumpsum');
+    params.append('initialAmt', initialAmtUsd);
+    params.append('monthlyAmt', monthlyAmtUsd);
+    params.append('months', selectedMonths);
+    params.append('divYield', currentDivYield);
+    params.append('totalDiv', lastSimResult.totalDividend);
+    params.append('finalAssets', lastSimResult.finalAssets);
+
+    fetch(contextPath + '/etf/' + currentSymbol + '/simulation/save.do', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
+        body: params.toString()
+    })
+    .then(function(res) { return res.json(); })
+    .then(function(result) {
+        if (result.status === 'ok') {
+            alert('저장 완료! (저장 ID: ' + result.savedId + ')');
+        } else {
+            alert('저장 실패. 다시 시도해주세요.');
+        }
+    })
+    .catch(function() {
+        alert('저장 중 오류가 발생했습니다.');
+    });
 });
 </script>
 
