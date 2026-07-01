@@ -19,7 +19,8 @@ public class EtfInfoVO implements Serializable {
     private BigDecimal highPrice;   // 고가 (USD) ★ 신규
     private BigDecimal lowPrice;    // 저가 (USD) ★ 신규
     private Long volume;            // 거래량 ★ 신규
-    private String issuer;          // ETF 전체 이름 (Polygon name) ★ 신규
+    private String issuer;          // ETF 전체 이름 (Polygon name)
+    private String description;     // ETF 설명 (AI 생성) ★ 신규
     private BigDecimal annualDiv;   // 12개월 합산 배당금 (USD)
     private BigDecimal divYield;    // 연 배당률 (%)
     private Integer divCount;       // 12개월 배당 횟수
@@ -48,6 +49,9 @@ public class EtfInfoVO implements Serializable {
 
     public String getIssuer() { return issuer; }
     public void setIssuer(String issuer) { this.issuer = issuer; }
+    
+    public String getDescription() { return description; }
+    public void setDescription(String description) { this.description = description; }
 
     public BigDecimal getAnnualDiv() { return annualDiv; }
     public void setAnnualDiv(BigDecimal annualDiv) { this.annualDiv = annualDiv; }

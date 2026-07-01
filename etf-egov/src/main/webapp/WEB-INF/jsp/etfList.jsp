@@ -18,6 +18,8 @@ body { background-color: #f8f9fa; }
 .info-item { text-align: center; }
 .info-item .label { font-size: 0.75rem; color: #6c757d; margin-bottom: 2px; }
 .info-item .value { font-size: 0.95rem; font-weight: 600; }
+.desc-box { background: #f8f9fa; border-radius: 8px; border-left: 4px solid #0d6efd;
+    padding: 12px 16px; margin-top: 12px; }
 </style>
 </head>
 <body>
@@ -130,6 +132,14 @@ body { background-color: #f8f9fa; }
                             <div class="value" id="volume">-</div>
                         </div>
                     </div>
+                </div>
+
+                <%-- ETF 설명 --%>
+                <div class="desc-box">
+                    <small class="text-muted" id="etfDescription" style="line-height:1.6;"></small>
+                    <small class="text-muted d-block mt-1" style="font-size:0.7rem;">
+                        ※ AI 생성 설명입니다. 투자 참고용으로만 활용하세요.
+                    </small>
                 </div>
 
             </div>
@@ -251,6 +261,9 @@ function renderEtf(data) {
     document.getElementById('highPrice').innerText = '$' + (info.highPrice || '-');
     document.getElementById('lowPrice').innerText  = '$' + (info.lowPrice  || '-');
     document.getElementById('volume').innerText    = info.volume ? Number(info.volume).toLocaleString() : '-';
+
+    // ETF 설명
+    document.getElementById('etfDescription').innerText = info.description || '';
 
     // 배당락일 · 지급일
     if (dividends.length > 0) {
