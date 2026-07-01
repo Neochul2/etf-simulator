@@ -31,7 +31,7 @@ body { background-color: #f8f9fa; }
 
 <div class="container">
 
-    <span class="badge badge-screen mb-2">화면 2</span>
+    <span class="badge badge-screen mb-2">🧮 계산기</span>
     <h2 class="fw-bold">월배당금 계산기</h2>
     <p class="text-muted">선택한 ETF의 월배당금 및 연배당금을 계산해보세요.</p>
 

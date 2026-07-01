@@ -37,7 +37,7 @@ body { background-color: #f8f9fa; }
 
 <div class="container">
 
-    <span class="badge badge-screen mb-2">화면 1</span>
+    <span class="badge badge-screen mb-2">📊 ETF INFO</span>
     <h2 class="fw-bold">미국 월배당 ETF</h2>
     <p class="text-muted">시총 상위 월배당 ETF 100개 중 하나를 검색하고 배당 정보를 확인하세요.</p>
 

@@ -31,7 +31,7 @@
 
 <div class="container">
 
-    <span class="badge badge-screen mb-2">화면 3</span>
+    <span class="badge badge-screen mb-2">📈 시뮬레이션</span>
     <h2 class="fw-bold">배당금 재투자 시뮬레이션</h2>
     <p class="text-muted">선택한 ETF의 배당금을 재투자할 경우 예상 자산 변화를 시뮬레이션해보세요.</p>
 
