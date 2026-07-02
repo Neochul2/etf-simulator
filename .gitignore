@@ -9,7 +9,7 @@ dist/
 build/
 .env
 __init__
-
+.python-version
 # CSV 데이터
 *.csv
 
