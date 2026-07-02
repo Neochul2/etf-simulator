@@ -25,6 +25,7 @@
             <li class="nav-item"><a class="nav-link" href="<%=request.getContextPath()%>/etf/list.do">ETF 조회</a></li>
             <li class="nav-item"><a class="nav-link" href="<%=request.getContextPath()%>/etf/calculator.do">배당금 계산기</a></li>
             <li class="nav-item"><a class="nav-link active" href="<%=request.getContextPath()%>/etf/simulator.do">재투자 시뮬레이션</a></li>
+            <li class="nav-item"><a class="nav-link" href="<%=request.getContextPath()%>/etf/portfolio.do">포트폴리오</a></li>
         </ul>
     </div>
 </nav>
@@ -119,6 +120,15 @@
                 <div class="col-6">
                     <div class="card shadow-sm h-100">
                         <div class="card-body text-center">
+                            <div class="text-muted small">실 투자금</div>
+                            <div class="fs-4 fw-bold text-dark" id="totalInvestKrw">-</div>
+                            <small class="text-muted" id="totalInvestUsd"></small>
+                        </div>
+                    </div>
+                </div>
+                <div class="col-6">
+                    <div class="card shadow-sm h-100">
+                        <div class="card-body text-center">
                             <div class="text-muted small">세후 총 배당금</div>
                             <div class="fs-4 fw-bold text-success" id="totalDividendKrw">-</div>
                             <small class="text-muted" id="totalDividendUsd"></small>
@@ -131,6 +141,15 @@
                             <div class="text-muted small">총 자산 (기간 후)</div>
                             <div class="fs-4 fw-bold text-primary" id="finalAssetsKrw">-</div>
                             <small class="text-muted" id="finalAssetsUsd"></small>
+                        </div>
+                    </div>
+                </div>
+                <div class="col-6">
+                    <div class="card shadow-sm h-100">
+                        <div class="card-body text-center">
+                            <div class="text-muted small">수익률</div>
+                            <div class="fs-4 fw-bold text-warning" id="returnRate">-</div>
+                            <small class="text-muted" id="returnKrw"></small>
                         </div>
                     </div>
                 </div>
@@ -158,8 +177,8 @@ var contextPath = '<%=request.getContextPath()%>';
 var currentSymbol = '';
 var selectedMonths = 60;
 var exchangeRateValue = 0;
-var currentDivYield = 0;    // 저장 시 사용할 배당률
-var lastSimResult = null;   // 마지막 시뮬레이션 결과 — 저장 시 사용
+var currentDivYield = 0;
+var lastSimResult = null;
 
 window.addEventListener('DOMContentLoaded', function() {
     loadExchangeRate();
@@ -210,7 +229,7 @@ function loadEtfInfo(symbol) {
             document.getElementById('afterTaxYield').innerText =
                 (info.divYield * (1 - 0.154)).toFixed(2) + '%';
 
-            currentDivYield = info.divYield; // 저장 시 사용
+            currentDivYield = info.divYield;
             updateUsdConverted();
         })
         .catch(function() {
@@ -266,8 +285,11 @@ function simulate() {
     var monthlyAmountKrw = parseFloat(document.getElementById('monthlyAmount').value) || 0;
     var isMonthlyInvest = document.getElementById('monthly').checked;
 
+    // 원화 → USD 환산 후 서버로 전송
     var initialAmountUsd = (initialAmountKrw / exchangeRateValue).toFixed(2);
-    var monthlyAmountUsd = isMonthlyInvest ? (monthlyAmountKrw / exchangeRateValue).toFixed(2) : 0;
+    var monthlyAmountUsd = isMonthlyInvest
+        ? (monthlyAmountKrw / exchangeRateValue).toFixed(2)
+        : 0;
 
     var url = contextPath + '/etf/' + currentSymbol + '/simulate.do'
         + '?initialAmount=' + initialAmountUsd
@@ -282,14 +304,38 @@ function simulate() {
         });
 }
 
+// ── renderResult: 서버에서 계산된 값을 받아 원화 환산 후 화면에 표시 ──
+// 실투자금(totalInvest), 수익률(returnRate)은 서버(Java BigDecimal)에서 계산
+// JS는 USD → 원화 환산과 화면 표시만 담당
 function renderResult(r) {
-    var totalDividendKrw = Math.round(r.totalDividend * exchangeRateValue);
-    var finalAssetsKrw = Math.round(r.finalAssets * exchangeRateValue);
 
-    document.getElementById('totalDividendKrw').innerText = totalDividendKrw.toLocaleString() + ' 원';
-    document.getElementById('totalDividendUsd').innerText = '(약 $' + r.totalDividend.toFixed(2) + ')';
-    document.getElementById('finalAssetsKrw').innerText = finalAssetsKrw.toLocaleString() + ' 원';
-    document.getElementById('finalAssetsUsd').innerText = '(약 $' + r.finalAssets.toFixed(2) + ')';
+    // USD → 원화 환산 (환율은 JS가 보유 중)
+    var totalInvestKrw   = Math.round(r.totalInvest   * exchangeRateValue);
+    var totalDividendKrw = Math.round(r.totalDividend * exchangeRateValue);
+    var finalAssetsKrw   = Math.round(r.finalAssets   * exchangeRateValue);
+
+    // 실 투자금 (서버에서 계산된 USD 기준값을 원화로 환산)
+    document.getElementById('totalInvestKrw').innerText =
+        totalInvestKrw.toLocaleString() + ' 원';
+    document.getElementById('totalInvestUsd').innerText =
+        '(약 $' + Number(r.totalInvest).toFixed(2) + ')';
+
+    // 세후 총 배당금
+    document.getElementById('totalDividendKrw').innerText =
+        totalDividendKrw.toLocaleString() + ' 원';
+    document.getElementById('totalDividendUsd').innerText =
+        '(약 $' + Number(r.totalDividend).toFixed(2) + ')';
+
+    // 총 자산 (기간 후)
+    document.getElementById('finalAssetsKrw').innerText =
+        finalAssetsKrw.toLocaleString() + ' 원';
+    document.getElementById('finalAssetsUsd').innerText =
+        '(약 $' + Number(r.finalAssets).toFixed(2) + ')';
+
+    // 수익률 — 서버에서 BigDecimal로 계산된 값을 그대로 표시 (JS 계산 없음)
+    document.getElementById('returnRate').innerText = r.returnRate + '%';
+    document.getElementById('returnKrw').innerText  =
+        '순수익 ' + totalDividendKrw.toLocaleString() + '원';
 
     // 저장 버튼용 결과 보관
     lastSimResult = r;
@@ -307,7 +353,18 @@ document.getElementById('resetBtn').addEventListener('click', function() {
     });
     document.querySelector('.period-btn[data-months="60"]').classList.add('active');
     updateUsdConverted();
-    lastSimResult = null; // 결과 초기화
+
+    // 결과 카드 전체 초기화
+    document.getElementById('totalInvestKrw').innerText  = '-';
+    document.getElementById('totalInvestUsd').innerText  = '';
+    document.getElementById('totalDividendKrw').innerText = '-';
+    document.getElementById('totalDividendUsd').innerText = '';
+    document.getElementById('finalAssetsKrw').innerText  = '-';
+    document.getElementById('finalAssetsUsd').innerText  = '';
+    document.getElementById('returnRate').innerText      = '-';
+    document.getElementById('returnKrw').innerText       = '';
+
+    lastSimResult = null;
 });
 
 document.getElementById('saveBtn').addEventListener('click', function() {
@@ -320,21 +377,22 @@ document.getElementById('saveBtn').addEventListener('click', function() {
         return;
     }
 
-    var isMonthlyInvest = document.getElementById('monthly').checked;
+    var isMonthlyInvest  = document.getElementById('monthly').checked;
     var initialAmountKrw = parseFloat(document.getElementById('initialAmount').value) || 0;
     var monthlyAmountKrw = parseFloat(document.getElementById('monthlyAmount').value) || 0;
-    var initialAmtUsd = (initialAmountKrw / exchangeRateValue).toFixed(2);
-    var monthlyAmtUsd = isMonthlyInvest ? (monthlyAmountKrw / exchangeRateValue).toFixed(2) : 0;
+    var initialAmtUsd    = (initialAmountKrw / exchangeRateValue).toFixed(2);
+    var monthlyAmtUsd    = isMonthlyInvest
+        ? (monthlyAmountKrw / exchangeRateValue).toFixed(2)
+        : 0;
 
-    // POST 파라미터 구성
     var params = new URLSearchParams();
-    params.append('investType', isMonthlyInvest ? 'monthly' : 'lumpsum');
-    params.append('initialAmt', initialAmtUsd);
-    params.append('monthlyAmt', monthlyAmtUsd);
-    params.append('months', selectedMonths);
-    params.append('divYield', currentDivYield);
-    params.append('totalDiv', lastSimResult.totalDividend);
-    params.append('finalAssets', lastSimResult.finalAssets);
+    params.append('investType',   isMonthlyInvest ? 'monthly' : 'lumpsum');
+    params.append('initialAmt',   initialAmtUsd);
+    params.append('monthlyAmt',   monthlyAmtUsd);
+    params.append('months',       selectedMonths);
+    params.append('divYield',     currentDivYield);
+    params.append('totalDiv',     lastSimResult.totalDividend);
+    params.append('finalAssets',  lastSimResult.finalAssets);
 
     fetch(contextPath + '/etf/' + currentSymbol + '/simulation/save.do', {
         method: 'POST',
