@@ -227,7 +227,7 @@ function loadEtfInfo(symbol) {
             currentDivYield = data.info.divYield;
 
             document.getElementById('logoBox').innerText = symbol;
-            document.getElementById('etfName').innerText = symbol;
+            document.getElementById('etfName').innerText = data.info.issuer || symbol;
             document.getElementById('symbolBadge').innerText = symbol;
             document.getElementById('divYield').innerText = currentDivYield + '%';
             document.getElementById('afterTaxYield').innerText =
