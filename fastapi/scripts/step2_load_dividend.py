@@ -1,6 +1,6 @@
 """
-load_dividend.py — 적재된 100개 ETF의 배당 내역을 etf_dividend 테이블에 증분 업서트
-실행: python scripts/load_dividend.py
+step2_load_dividend.py — 적재된 100개 ETF...
+실행: python scripts/step2_load_dividend.py
 """
 import requests
 import time

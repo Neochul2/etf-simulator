@@ -1,6 +1,6 @@
 """
-step4_load_descriptions.py — ETF 설명 CSV를 읽어서 etf_info.description 컬럼에 UPDATE
-실행: python scripts/step4_load_descriptions.py
+step3_load_descriptions.py — ETF 설명 CSV...
+실행: python scripts/step3_load_descriptions.py
 """
 import csv
 import sys

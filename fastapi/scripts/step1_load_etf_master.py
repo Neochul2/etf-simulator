@@ -1,6 +1,6 @@
 """
-load_etf_master.py — CSV에서 시총 상위 100개 추출 후 Polygon으로 재수집 → MySQL 증분 업서트
-실행: python scripts/step1_load_etf_master.py
+step2_load_dividend.py — 적재된 100개 ETF...
+실행: python scripts/step2_load_dividend.py
 """
 import requests
 import pandas as pd
