@@ -18,6 +18,7 @@ def get_usdkrw() -> dict:
                 "data": "AP01",
             },
             timeout=10,
+            verify=False,  # ← SSL 검증 비활성화
         )
         data = r.json()
         for item in data:
