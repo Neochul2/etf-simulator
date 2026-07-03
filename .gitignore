@@ -28,6 +28,7 @@ bin/
 *.launch
 .metadata/
 generated/
+context-datasource.xml
 
 # IDE
 .vscode/
