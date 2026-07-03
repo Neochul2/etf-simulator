@@ -39,5 +39,8 @@
 
     <bean id="antPathMater" class="org.springframework.util.AntPathMatcher"/>
     <bean id="defaultTraceHandler" class="org.egovframe.rte.fdl.cmmn.trace.handler.DefaultTraceHandler"/>
-
+    <!-- globals.properties 로드 -->
+    <context:property-placeholder
+        location="classpath:/egovframework/egovProps/globals.properties"/>
+       
 </beans>
