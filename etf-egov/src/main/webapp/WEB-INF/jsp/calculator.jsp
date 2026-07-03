@@ -35,7 +35,6 @@ body { background-color: #f8f9fa; }
     <h2 class="fw-bold">월배당금 계산기</h2>
     <p class="text-muted">선택한 ETF의 월배당금 및 연배당금을 계산해보세요.</p>
 
-    <%-- 종목 검색 + 드롭다운 (화면1·3과 동일 패턴, URL 파라미터 연동 없음) --%>
     <div class="row g-2 mb-4">
         <div class="col-md-4">
             <input type="text" id="searchInput" class="form-control" placeholder="티커 입력 (예: JEPI)">
@@ -74,7 +73,7 @@ body { background-color: #f8f9fa; }
                 <div class="card-body">
                     <h6 class="text-muted mb-2">2. 투자 정보 입력</h6>
                     <label class="form-label">투자금액 (원)</label>
-                    <input type="number" id="investAmount" class="form-control" value="10000000">
+                    <input type="text" id="investAmount" class="form-control" value="10,000,000">
                     <small class="text-muted" id="usdConverted">≈ $0.00 USD</small>
                     <button class="btn btn-primary w-100 py-2 mt-3" id="calculateBtn">🧮 계산하기</button>
                 </div>
@@ -167,7 +166,6 @@ var exchangeRateValue = 0;
 window.addEventListener('DOMContentLoaded', function() {
     loadExchangeRate();
     loadSymbolList();
-    // URL 파라미터 연동 완전 제거 — 독립 운영
 });
 
 function loadExchangeRate() {
@@ -177,6 +175,7 @@ function loadExchangeRate() {
             exchangeRateValue = Number(rate.rate);
             document.getElementById('exchangeRate').innerText =
                 exchangeRateValue.toLocaleString() + ' KRW / USD';
+            updateUsdConverted();
         });
 }
 
@@ -194,7 +193,13 @@ function loadSymbolList() {
         });
 }
 
-// 드롭다운 선택 시 종목 로드 + 검색창 동기화
+// 투자금액 콤마 자동 추가
+document.getElementById('investAmount').addEventListener('input', function() {
+    var val = this.value.replace(/,/g, '').replace(/[^0-9]/g, '');
+    if (val) this.value = Number(val).toLocaleString();
+    updateUsdConverted();
+});
+
 document.getElementById('symbolSelect').addEventListener('change', function() {
     if (this.value) {
         document.getElementById('searchInput').value = this.value;
@@ -202,21 +207,14 @@ document.getElementById('symbolSelect').addEventListener('change', function() {
     }
 });
 
-// 검색 버튼 클릭
 document.getElementById('searchBtn').addEventListener('click', function() {
     var symbol = document.getElementById('searchInput').value.trim().toUpperCase();
-    if (!symbol) {
-        alert('티커를 입력해주세요.');
-        return;
-    }
+    if (!symbol) { alert('티커를 입력해주세요.'); return; }
     loadEtfInfo(symbol);
 });
 
-// 엔터키 검색
 document.getElementById('searchInput').addEventListener('keydown', function(e) {
-    if (e.key === 'Enter') {
-        document.getElementById('searchBtn').click();
-    }
+    if (e.key === 'Enter') document.getElementById('searchBtn').click();
 });
 
 function loadEtfInfo(symbol) {
@@ -232,11 +230,8 @@ function loadEtfInfo(symbol) {
             document.getElementById('divYield').innerText = currentDivYield + '%';
             document.getElementById('afterTaxYield').innerText =
                 (currentDivYield * (1 - 0.154)).toFixed(2) + '%';
-            
 
-            // 검색창 → 드롭다운 동기화 추가
             document.getElementById('symbolSelect').value = symbol;
-
             updateUsdConverted();
         })
         .catch(function() {
@@ -244,10 +239,8 @@ function loadEtfInfo(symbol) {
         });
 }
 
-document.getElementById('investAmount').addEventListener('input', updateUsdConverted);
-
 function updateUsdConverted() {
-    var krw = parseFloat(document.getElementById('investAmount').value) || 0;
+    var krw = parseFloat(document.getElementById('investAmount').value.replace(/,/g, '')) || 0;
     if (exchangeRateValue > 0) {
         document.getElementById('usdConverted').innerText =
             '≈ $' + (krw / exchangeRateValue).toFixed(2) + ' USD';
@@ -257,30 +250,21 @@ function updateUsdConverted() {
 document.getElementById('calculateBtn').addEventListener('click', calculate);
 
 function calculate() {
-    if (!currentSymbol) {
-        alert('종목을 먼저 선택해주세요.');
-        return;
-    }
-    var investAmount = document.getElementById('investAmount').value;
+    if (!currentSymbol) { alert('종목을 먼저 선택해주세요.'); return; }
+    var investAmount = document.getElementById('investAmount').value.replace(/,/g, '');
     fetch(contextPath + '/etf/' + currentSymbol + '/calculate.do?investAmount=' + investAmount)
         .then(function(res) { return res.json(); })
-        .then(function(result) {
-            renderResult(result);
-        });
+        .then(function(result) { renderResult(result); });
 }
 
 function renderResult(r) {
     document.getElementById('usdConverted').innerText = '≈ $' + r.investAmountUsd.toFixed(2) + ' USD';
-
     document.getElementById('beforeTaxMonthly').innerText = Math.round(r.beforeTaxMonthlyKrw).toLocaleString() + ' 원';
     document.getElementById('beforeTaxMonthlyUsd').innerText = '($' + r.beforeTaxMonthlyUsd.toFixed(2) + ')';
-
     document.getElementById('afterTaxMonthly').innerText = Math.round(r.afterTaxMonthlyKrw).toLocaleString() + ' 원';
     document.getElementById('afterTaxMonthlyUsd').innerText = '($' + r.afterTaxMonthlyUsd.toFixed(2) + ')';
-
     document.getElementById('beforeTaxYearly').innerText = Math.round(r.beforeTaxYearlyKrw).toLocaleString() + ' 원';
     document.getElementById('beforeTaxYearlyUsd').innerText = '($' + r.beforeTaxYearlyUsd.toFixed(2) + ')';
-
     document.getElementById('afterTaxYearly').innerText = Math.round(r.afterTaxYearlyKrw).toLocaleString() + ' 원';
     document.getElementById('afterTaxYearlyUsd').innerText = '($' + r.afterTaxYearlyUsd.toFixed(2) + ')';
 }

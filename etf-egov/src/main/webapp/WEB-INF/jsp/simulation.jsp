@@ -25,7 +25,7 @@
             <li class="nav-item"><a class="nav-link" href="<%=request.getContextPath()%>/etf/list.do">ETF 조회</a></li>
             <li class="nav-item"><a class="nav-link" href="<%=request.getContextPath()%>/etf/calculator.do">배당금 계산기</a></li>
             <li class="nav-item"><a class="nav-link active" href="<%=request.getContextPath()%>/etf/simulator.do">재투자 시뮬레이션</a></li>
-            
+        </ul>
     </div>
 </nav>
 
@@ -87,11 +87,11 @@
                     </div>
 
                     <label class="form-label d-block mb-2">초기 투자금 (원)</label>
-                    <input type="number" id="initialAmount" class="form-control mb-1" value="10000000">
+                    <input type="text" id="initialAmount" class="form-control mb-1" value="10,000,000">
                     <small class="text-muted d-block mb-3" id="usdConverted">≈ $0.00 USD</small>
 
                     <label class="form-label d-block mb-2">월 적립 금액 (원)</label>
-                    <input type="number" id="monthlyAmount" class="form-control mb-3" value="500000" disabled>
+                    <input type="text" id="monthlyAmount" class="form-control mb-3" value="500,000" disabled>
 
                     <label class="form-label d-block mb-2">투자 기간</label>
                     <div class="btn-group w-100 mb-4" role="group">
@@ -179,6 +179,17 @@ var exchangeRateValue = 0;
 var currentDivYield = 0;
 var lastSimResult = null;
 
+// 숫자 → 콤마 포맷
+function formatNumber(val) {
+    var num = val.toString().replace(/,/g, '').replace(/[^0-9]/g, '');
+    return num ? Number(num).toLocaleString() : '';
+}
+
+// 콤마 제거 후 숫자 반환
+function parseNumber(val) {
+    return parseFloat(val.toString().replace(/,/g, '')) || 0;
+}
+
 window.addEventListener('DOMContentLoaded', function() {
     loadExchangeRate();
     loadSymbolList();
@@ -190,6 +201,7 @@ function loadExchangeRate() {
         .then(function(rate) {
             exchangeRateValue = Number(rate.rate);
             document.getElementById('exchangeRate').innerText = exchangeRateValue.toLocaleString();
+            updateUsdConverted();
         });
 }
 
@@ -208,9 +220,7 @@ function loadSymbolList() {
 }
 
 document.getElementById('symbolSelect').addEventListener('change', function() {
-    if (this.value) {
-        loadEtfInfo(this.value);
-    }
+    if (this.value) loadEtfInfo(this.value);
 });
 
 function loadEtfInfo(symbol) {
@@ -221,7 +231,7 @@ function loadEtfInfo(symbol) {
             var info = data.info;
 
             document.getElementById('logoBox').innerText = symbol;
-            document.getElementById('etfName').innerText = symbol;
+            document.getElementById('etfName').innerText = info.issuer || symbol;
             document.getElementById('symbolBadge').innerText = symbol;
             document.getElementById('price').innerText = '$' + info.price;
             document.getElementById('divYield').innerText = info.divYield + '%';
@@ -236,6 +246,16 @@ function loadEtfInfo(symbol) {
         });
 }
 
+// 투자금액 콤마 자동 추가
+document.getElementById('initialAmount').addEventListener('input', function() {
+    this.value = formatNumber(this.value);
+    updateUsdConverted();
+});
+
+document.getElementById('monthlyAmount').addEventListener('input', function() {
+    this.value = formatNumber(this.value);
+});
+
 document.querySelectorAll('input[name="investType"]').forEach(function(radio) {
     radio.addEventListener('change', function() {
         var isMonthly = document.getElementById('monthly').checked;
@@ -243,7 +263,7 @@ document.querySelectorAll('input[name="investType"]').forEach(function(radio) {
 
         var initialAmountInput = document.getElementById('initialAmount');
         if (isMonthly) {
-            initialAmountInput.value = 0;
+            initialAmountInput.value = '0';
             initialAmountInput.disabled = true;
         } else {
             initialAmountInput.disabled = false;
@@ -262,33 +282,26 @@ document.querySelectorAll('.period-btn').forEach(function(btn) {
     });
 });
 
-document.getElementById('initialAmount').addEventListener('input', updateUsdConverted);
-
 function updateUsdConverted() {
-    var krw = parseFloat(document.getElementById('initialAmount').value) || 0;
+    var krw = parseNumber(document.getElementById('initialAmount').value);
     if (exchangeRateValue > 0) {
-        var usd = krw / exchangeRateValue;
-        document.getElementById('usdConverted').innerText = '≈ $' + usd.toFixed(2) + ' USD';
+        document.getElementById('usdConverted').innerText =
+            '≈ $' + (krw / exchangeRateValue).toFixed(2) + ' USD';
     }
 }
 
 document.getElementById('simulateBtn').addEventListener('click', simulate);
 
 function simulate() {
-    if (!currentSymbol) {
-        alert('종목을 먼저 선택해주세요.');
-        return;
-    }
+    if (!currentSymbol) { alert('종목을 먼저 선택해주세요.'); return; }
 
-    var initialAmountKrw = parseFloat(document.getElementById('initialAmount').value) || 0;
-    var monthlyAmountKrw = parseFloat(document.getElementById('monthlyAmount').value) || 0;
+    var initialAmountKrw = parseNumber(document.getElementById('initialAmount').value);
+    var monthlyAmountKrw = parseNumber(document.getElementById('monthlyAmount').value);
     var isMonthlyInvest = document.getElementById('monthly').checked;
 
-    // 원화 → USD 환산 후 서버로 전송
     var initialAmountUsd = (initialAmountKrw / exchangeRateValue).toFixed(2);
     var monthlyAmountUsd = isMonthlyInvest
-        ? (monthlyAmountKrw / exchangeRateValue).toFixed(2)
-        : 0;
+        ? (monthlyAmountKrw / exchangeRateValue).toFixed(2) : 0;
 
     var url = contextPath + '/etf/' + currentSymbol + '/simulate.do'
         + '?initialAmount=' + initialAmountUsd
@@ -298,62 +311,37 @@ function simulate() {
 
     fetch(url)
         .then(function(res) { return res.json(); })
-        .then(function(result) {
-            renderResult(result);
-        });
+        .then(function(result) { renderResult(result); });
 }
 
-// ── renderResult: 서버에서 계산된 값을 받아 원화 환산 후 화면에 표시 ──
-// 실투자금(totalInvest), 수익률(returnRate)은 서버(Java BigDecimal)에서 계산
-// JS는 USD → 원화 환산과 화면 표시만 담당
 function renderResult(r) {
-
-    // USD → 원화 환산 (환율은 JS가 보유 중)
     var totalInvestKrw   = Math.round(r.totalInvest   * exchangeRateValue);
     var totalDividendKrw = Math.round(r.totalDividend * exchangeRateValue);
     var finalAssetsKrw   = Math.round(r.finalAssets   * exchangeRateValue);
 
-    // 실 투자금 (서버에서 계산된 USD 기준값을 원화로 환산)
-    document.getElementById('totalInvestKrw').innerText =
-        totalInvestKrw.toLocaleString() + ' 원';
-    document.getElementById('totalInvestUsd').innerText =
-        '(약 $' + Number(r.totalInvest).toFixed(2) + ')';
-
-    // 세후 총 배당금
-    document.getElementById('totalDividendKrw').innerText =
-        totalDividendKrw.toLocaleString() + ' 원';
-    document.getElementById('totalDividendUsd').innerText =
-        '(약 $' + Number(r.totalDividend).toFixed(2) + ')';
-
-    // 총 자산 (기간 후)
-    document.getElementById('finalAssetsKrw').innerText =
-        finalAssetsKrw.toLocaleString() + ' 원';
-    document.getElementById('finalAssetsUsd').innerText =
-        '(약 $' + Number(r.finalAssets).toFixed(2) + ')';
-
-    // 수익률 — 서버에서 BigDecimal로 계산된 값을 그대로 표시 (JS 계산 없음)
+    document.getElementById('totalInvestKrw').innerText = totalInvestKrw.toLocaleString() + ' 원';
+    document.getElementById('totalInvestUsd').innerText = '(약 $' + Number(r.totalInvest).toFixed(2) + ')';
+    document.getElementById('totalDividendKrw').innerText = totalDividendKrw.toLocaleString() + ' 원';
+    document.getElementById('totalDividendUsd').innerText = '(약 $' + Number(r.totalDividend).toFixed(2) + ')';
+    document.getElementById('finalAssetsKrw').innerText = finalAssetsKrw.toLocaleString() + ' 원';
+    document.getElementById('finalAssetsUsd').innerText = '(약 $' + Number(r.finalAssets).toFixed(2) + ')';
     document.getElementById('returnRate').innerText = r.returnRate + '%';
-    document.getElementById('returnKrw').innerText  =
-        '순수익 ' + totalDividendKrw.toLocaleString() + '원';
+    document.getElementById('returnKrw').innerText = '순수익 ' + totalDividendKrw.toLocaleString() + '원';
 
-    // 저장 버튼용 결과 보관
     lastSimResult = r;
 }
 
 document.getElementById('resetBtn').addEventListener('click', function() {
-    document.getElementById('initialAmount').value = 10000000;
+    document.getElementById('initialAmount').value = '10,000,000';
     document.getElementById('initialAmount').disabled = false;
-    document.getElementById('monthlyAmount').value = 500000;
+    document.getElementById('monthlyAmount').value = '500,000';
     document.getElementById('lumpsum').checked = true;
     document.getElementById('monthlyAmount').disabled = true;
     selectedMonths = 60;
-    document.querySelectorAll('.period-btn').forEach(function(b) {
-        b.classList.remove('active');
-    });
+    document.querySelectorAll('.period-btn').forEach(function(b) { b.classList.remove('active'); });
     document.querySelector('.period-btn[data-months="60"]').classList.add('active');
     updateUsdConverted();
 
-    // 결과 카드 전체 초기화
     document.getElementById('totalInvestKrw').innerText  = '-';
     document.getElementById('totalInvestUsd').innerText  = '';
     document.getElementById('totalDividendKrw').innerText = '-';
@@ -367,31 +355,24 @@ document.getElementById('resetBtn').addEventListener('click', function() {
 });
 
 document.getElementById('saveBtn').addEventListener('click', function() {
-    if (!currentSymbol) {
-        alert('종목을 먼저 선택해주세요.');
-        return;
-    }
-    if (!lastSimResult) {
-        alert('시뮬레이션을 먼저 실행해주세요.');
-        return;
-    }
+    if (!currentSymbol) { alert('종목을 먼저 선택해주세요.'); return; }
+    if (!lastSimResult) { alert('시뮬레이션을 먼저 실행해주세요.'); return; }
 
     var isMonthlyInvest  = document.getElementById('monthly').checked;
-    var initialAmountKrw = parseFloat(document.getElementById('initialAmount').value) || 0;
-    var monthlyAmountKrw = parseFloat(document.getElementById('monthlyAmount').value) || 0;
+    var initialAmountKrw = parseNumber(document.getElementById('initialAmount').value);
+    var monthlyAmountKrw = parseNumber(document.getElementById('monthlyAmount').value);
     var initialAmtUsd    = (initialAmountKrw / exchangeRateValue).toFixed(2);
     var monthlyAmtUsd    = isMonthlyInvest
-        ? (monthlyAmountKrw / exchangeRateValue).toFixed(2)
-        : 0;
+        ? (monthlyAmountKrw / exchangeRateValue).toFixed(2) : 0;
 
     var params = new URLSearchParams();
-    params.append('investType',   isMonthlyInvest ? 'monthly' : 'lumpsum');
-    params.append('initialAmt',   initialAmtUsd);
-    params.append('monthlyAmt',   monthlyAmtUsd);
-    params.append('months',       selectedMonths);
-    params.append('divYield',     currentDivYield);
-    params.append('totalDiv',     lastSimResult.totalDividend);
-    params.append('finalAssets',  lastSimResult.finalAssets);
+    params.append('investType',  isMonthlyInvest ? 'monthly' : 'lumpsum');
+    params.append('initialAmt',  initialAmtUsd);
+    params.append('monthlyAmt',  monthlyAmtUsd);
+    params.append('months',      selectedMonths);
+    params.append('divYield',    currentDivYield);
+    params.append('totalDiv',    lastSimResult.totalDividend);
+    params.append('finalAssets', lastSimResult.finalAssets);
 
     fetch(contextPath + '/etf/' + currentSymbol + '/simulation/save.do', {
         method: 'POST',
