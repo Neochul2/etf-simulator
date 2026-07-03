@@ -58,4 +58,13 @@ def get_etf_dividends(ticker: str, db_conn) -> list:
     """, (ticker.upper(),))
     rows = cursor.fetchall()
     cursor.close()
-    return rows
+    # camelCase로 변환 (Java EtfDividendVO 필드명과 일치)
+    return [
+        {
+            "symbol":     row["symbol"],
+            "exDivDate":  str(row["ex_div_date"]) if row["ex_div_date"] else None,
+            "payDate":    str(row["pay_date"]) if row["pay_date"] else None,
+            "cashAmount": row["cash_amount"],
+        }
+        for row in rows
+    ]
