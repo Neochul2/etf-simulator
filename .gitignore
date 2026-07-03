@@ -10,6 +10,7 @@ build/
 .env
 __init__
 .python-version
+*.log
 # CSV 데이터
 *.csv
 
