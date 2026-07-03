@@ -1,5 +1,6 @@
 package com.kopo.etf.controller;
 
+import java.net.URI;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -41,19 +42,23 @@ public class EtfController {
             // FastAPI 호출
             RestTemplate rt = new RestTemplate();
 
-            // ETF 기본정보 (FastAPI)
+         // ETF 기본정보 (FastAPI)
             String infoUrl = fastapiBaseUrl + "/etf/" + symbol.toUpperCase();
-            EtfInfoVO info = rt.getForObject(infoUrl, EtfInfoVO.class);
+            EtfInfoVO info = rt.getForObject(URI.create(infoUrl), EtfInfoVO.class);
 
-            // 배당내역 (FastAPI)
+         // 배당내역 (FastAPI)
             String divUrl = fastapiBaseUrl + "/etf/" + symbol.toUpperCase() + "/dividends";
-            EtfDividendVO[] dividends = rt.getForObject(divUrl, EtfDividendVO[].class);
-
+            EtfDividendVO[] dividends = rt.getForObject(URI.create(divUrl), EtfDividendVO[].class);
+            
             result.put("info", info);
             result.put("dividends", dividends != null ? List.of(dividends) : List.of());
             result.put("source", "FastAPI");  // 연계 확인용
-
+            
+     
         } catch (Exception e) {
+        	// 에러 내용 출력 (원인 파악용)
+            System.out.println("FastAPI 호출 실패: " + e.getMessage());
+            e.printStackTrace();
             // FastAPI 호출 실패 시 DB에서 직접 조회 (fallback)
             EtfInfoVO info = etfInfoService.getEtfInfo(symbol);
             List<EtfDividendVO> dividends = etfInfoService.getRecentDividends(symbol);

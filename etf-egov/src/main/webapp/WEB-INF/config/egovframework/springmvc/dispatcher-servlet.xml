@@ -45,5 +45,11 @@
 	<!-- 정적 리소스 -->
 	<mvc:resources mapping="/resources/**"
 		location="/resources/" />
+		
+	    <!-- globals.properties 로드 (Controller에서 @Value 사용을 위해) -->
+    <context:property-placeholder
+        location="classpath:/egovframework/egovProps/globals.properties"/>	
+		
+		
 
 </beans>
