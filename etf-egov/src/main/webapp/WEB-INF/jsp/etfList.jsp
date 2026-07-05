@@ -31,6 +31,7 @@ body { background-color: #f8f9fa; }
             <li class="nav-item"><a class="nav-link active" href="<%=request.getContextPath()%>/etf/list.do">ETF 조회</a></li>
             <li class="nav-item"><a class="nav-link" href="<%=request.getContextPath()%>/etf/calculator.do">배당금 계산기</a></li>
             <li class="nav-item"><a class="nav-link" href="<%=request.getContextPath()%>/etf/simulator.do">재투자 시뮬레이션</a></li>
+            <li class="nav-item"><a class="nav-link" href="<%=request.getContextPath()%>/etf/portfolio.do">내 포트폴리오</a></li>
         </ul>
     </div>
 </nav>
