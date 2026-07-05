@@ -225,8 +225,14 @@ function runSearch() {
 }
 
 function searchEtf(symbol) {
-    // 검색 시 sessionStorage에 저장 (다른 화면 갔다가 돌아올 때 복원)
     sessionStorage.setItem('lastSymbol', symbol);
+    
+    // 로딩 표시
+    document.getElementById('resultArea').style.display = 'block';
+    document.getElementById('logoBox').innerText = '...';
+    document.getElementById('etfName').innerText = '조회 중...';
+    document.getElementById('price').innerText = '-';
+    document.getElementById('divYield').innerText = '-';
 
     fetch(contextPath + '/etf/' + symbol + '/detail.do')
         .then(function(res) {
