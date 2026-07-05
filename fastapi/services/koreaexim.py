@@ -10,17 +10,21 @@ def get_usdkrw() -> dict:
     """USD/KRW 환율 조회 (최근 영업일 자동 탐색)"""
     for i in range(10):
         date_str = (datetime.now() - timedelta(days=i)).strftime("%Y%m%d")
-        r = requests.get(
-            "https://oapi.koreaexim.go.kr/site/program/financial/exchangeJSON",
-            params={
-                "authkey": KOREAEXIM_API_KEY,
-                "searchdate": date_str,
-                "data": "AP01",
-            },
-            timeout=10,
-            verify=False,  # ← SSL 검증 비활성화
-        )
-        data = r.json()
+        try:
+            r = requests.get(
+                "https://oapi.koreaexim.go.kr/site/program/financial/exchangeJSON",
+                params={
+                    "authkey": KOREAEXIM_API_KEY,
+                    "searchdate": date_str,
+                    "data": "AP01",
+                },
+                timeout=3,
+                verify=False,
+            )
+            data = r.json()
+        except requests.exceptions.RequestException:
+            continue
+
         for item in data:
             if item.get("cur_unit") == "USD":
                 return {
