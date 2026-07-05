@@ -25,10 +25,17 @@ body { background-color: #f8f9fa; }
         <a class="navbar-brand" href="<%=request.getContextPath()%>/etf/list.do">📊 미국 월배당 ETF</a>
         <ul class="navbar-nav mx-auto">
             <li class="nav-item"><a class="nav-link" href="<%=request.getContextPath()%>/etf/list.do">ETF 조회</a></li>
-            <li class="nav-item"><a class="nav-link" href="<%=request.getContextPath()%>/etf/calculator.do">배당금 계산기</a></li>
+            <li class="nav-item"><a class="nav-link active" href="<%=request.getContextPath()%>/etf/calculator.do">배당금 계산기</a></li>
             <li class="nav-item"><a class="nav-link" href="<%=request.getContextPath()%>/etf/simulator.do">재투자 시뮬레이션</a></li>
-            <li class="nav-item"><a class="nav-link active" href="<%=request.getContextPath()%>/etf/portfolio.do">내 포트폴리오</a></li>
+            <li class="nav-item"><a class="nav-link" href="<%=request.getContextPath()%>/etf/portfolio.do">내 포트폴리오</a></li>
         </ul>
+        <div class="d-flex align-items-center ms-3">
+            <span class="text-muted me-2" style="font-size:0.85rem;">
+                💱 <span id="navExchangeRate">-</span> KRW
+            </span>
+            <button class="btn btn-sm btn-outline-secondary" id="navRateUpdateBtn"
+                    onclick="updateExchangeRate()">🔄</button>
+        </div>
     </div>
 </nav>
 

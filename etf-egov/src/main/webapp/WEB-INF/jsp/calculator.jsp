@@ -27,6 +27,13 @@ body { background-color: #f8f9fa; }
             <li class="nav-item"><a class="nav-link" href="<%=request.getContextPath()%>/etf/simulator.do">재투자 시뮬레이션</a></li>
             <li class="nav-item"><a class="nav-link" href="<%=request.getContextPath()%>/etf/portfolio.do">내 포트폴리오</a></li>
         </ul>
+        <div class="d-flex align-items-center ms-3">
+            <span class="text-muted me-2" style="font-size:0.85rem;">
+                💱 <span id="navExchangeRate">-</span> KRW
+            </span>
+            <button class="btn btn-sm btn-outline-secondary" id="navRateUpdateBtn"
+                    onclick="updateExchangeRate()">🔄</button>
+        </div>
     </div>
 </nav>
 
