@@ -6,7 +6,7 @@
 
     <!--
         최신 환율 1건 조회
-        테이블정의서 5-2 참고사항: rate_date 최신 1건 (ORDER BY rate_date DESC LIMIT 1)
+        id DESC: 가장 최근에 upsert된 행 = 실제 최신 저장 데이터
     -->
     <select id="selectLatestRate" resultType="com.kopo.etf.vo.ExchangeRateVO">
         SELECT
@@ -17,8 +17,8 @@
             rate_date    AS rateDate,
             created_at   AS createdAt
         FROM exchange_rate
-        ORDER BY rate_date DESC
+        ORDER BY id DESC
         LIMIT 1
     </select>
 
-</mapper>
+</mapper>  
