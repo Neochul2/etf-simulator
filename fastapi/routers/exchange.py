@@ -19,7 +19,7 @@ def usdkrw():
         cursor.execute("""
             SELECT base_cur, target_cur, rate, rate_date
             FROM exchange_rate
-            ORDER BY rate_date DESC
+            ORDER BY id DESC
             LIMIT 1
         """)
         row = cursor.fetchone()
