@@ -16,6 +16,8 @@ body { background-color: #f8f9fa; }
     text-align: center; box-shadow: 0 1px 4px rgba(0,0,0,0.08); }
 .summary-card .label { font-size: 0.78rem; color: #6c757d; margin-bottom: 4px; }
 .summary-card .value { font-size: 1.3rem; font-weight: 700; }
+.amt-edit-btn { font-size: 0.75rem; text-decoration: none; }
+.amt-input { max-width: 160px; display: inline-block; }
 </style>
 </head>
 <body>
@@ -25,9 +27,9 @@ body { background-color: #f8f9fa; }
         <a class="navbar-brand" href="<%=request.getContextPath()%>/etf/list.do">📊 미국 월배당 ETF</a>
         <ul class="navbar-nav mx-auto">
             <li class="nav-item"><a class="nav-link" href="<%=request.getContextPath()%>/etf/list.do">ETF 조회</a></li>
-            <li class="nav-item"><a class="nav-link active" href="<%=request.getContextPath()%>/etf/calculator.do">배당금 계산기</a></li>
+            <li class="nav-item"><a class="nav-link" href="<%=request.getContextPath()%>/etf/calculator.do">배당금 계산기</a></li>
             <li class="nav-item"><a class="nav-link" href="<%=request.getContextPath()%>/etf/simulator.do">재투자 시뮬레이션</a></li>
-            <li class="nav-item"><a class="nav-link" href="<%=request.getContextPath()%>/etf/portfolio.do">내 포트폴리오</a></li>
+            <li class="nav-item"><a class="nav-link active" href="<%=request.getContextPath()%>/etf/portfolio.do">내 포트폴리오</a></li>
         </ul>
         <div class="d-flex align-items-center ms-3">
             <span class="text-muted me-2" style="font-size:0.85rem;">
@@ -140,9 +142,21 @@ body { background-color: #f8f9fa; }
                                     <td class="text-success fw-bold">
                                         <fmt:formatNumber value="${p.divYield}" pattern="#,##0.00"/>%
                                     </td>
-                                    <td>
-                                        <fmt:formatNumber value="${p.investAmt}" pattern="#,##0"/>원<br>
-                                        <small class="text-muted">$<fmt:formatNumber value="${p.investUsd}" pattern="#,##0.00"/></small>
+                                    <td class="invest-amt-cell" data-id="${p.id}">
+                                        <span class="amt-display">
+                                            <fmt:formatNumber value="${p.investAmt}" pattern="#,##0"/>원<br>
+                                            <small class="text-muted">$<fmt:formatNumber value="${p.investUsd}" pattern="#,##0.00"/></small>
+                                            <br>
+                                            <a href="javascript:void(0)" class="amt-edit-btn">✏️ 수정</a>
+                                        </span>
+                                        <div class="amt-edit" style="display:none;">
+                                            <input type="text" class="form-control form-control-sm amt-input"
+                                                   value="<fmt:formatNumber value="${p.investAmt}" pattern="#,##0"/>">
+                                            <div class="mt-1">
+                                                <button class="btn btn-sm btn-primary amt-save-btn">저장</button>
+                                                <button class="btn btn-sm btn-outline-secondary amt-cancel-btn">취소</button>
+                                            </div>
+                                        </div>
                                     </td>
                                     <td class="text-success fw-bold">
                                         <fmt:formatNumber value="${p.monthlyDiv}" pattern="#,##0"/>원<br>
@@ -184,6 +198,36 @@ function formatNumber(val) {
 }
 function parseNumber(val) {
     return parseFloat(val.toString().replace(/,/g, '')) || 0;
+}
+
+// 네비바 환율 표시
+fetch(CTX + '/exchange/latest.do')
+    .then(function(r) { return r.json(); })
+    .then(function(d) {
+        document.getElementById('navExchangeRate').innerText =
+            Number(d.rate).toLocaleString();
+    });
+
+// 환율 업데이트 버튼
+function updateExchangeRate() {
+    var btn = document.getElementById('navRateUpdateBtn');
+    btn.disabled = true;
+    btn.innerText = '⏳';
+    fetch(CTX + '/exchange/update.do', { method: 'POST' })
+        .then(function(r) { return r.json(); })
+        .then(function(d) {
+            if (d.status === 'ok') {
+                document.getElementById('navExchangeRate').innerText =
+                    Number(d.rate).toLocaleString();
+                btn.innerText = '✅';
+            } else {
+                btn.innerText = '❌';
+            }
+            setTimeout(function() {
+                btn.disabled = false;
+                btn.innerText = '🔄';
+            }, 2000);
+        });
 }
 
 window.onload = function() {
@@ -250,6 +294,58 @@ function deletePortfolio(id) {
             }
         });
 }
+
+// ===== 투자금액 인라인 수정 =====
+
+// 콤마 자동 추가 (수정 입력창)
+document.addEventListener('input', function(e) {
+    if (e.target.classList.contains('amt-input')) {
+        e.target.value = formatNumber(e.target.value);
+    }
+});
+
+document.addEventListener('click', function(e) {
+
+    // 수정 버튼 → 입력창 표시
+    if (e.target.classList.contains('amt-edit-btn')) {
+        var td = e.target.closest('.invest-amt-cell');
+        td.querySelector('.amt-display').style.display = 'none';
+        td.querySelector('.amt-edit').style.display = 'block';
+    }
+
+    // 취소 → 원래 표시로 복귀
+    if (e.target.classList.contains('amt-cancel-btn')) {
+        var td = e.target.closest('.invest-amt-cell');
+        td.querySelector('.amt-display').style.display = '';
+        td.querySelector('.amt-edit').style.display = 'none';
+    }
+
+    // 저장 → update.do 호출
+    if (e.target.classList.contains('amt-save-btn')) {
+        var td = e.target.closest('.invest-amt-cell');
+        var id = td.dataset.id;
+        var newAmt = parseNumber(td.querySelector('.amt-input').value);
+
+        if (!newAmt || newAmt <= 0) {
+            alert('올바른 금액을 입력해주세요.');
+            return;
+        }
+
+        var params = new URLSearchParams();
+        params.append('id', id);
+        params.append('investAmt', newAmt);
+
+        fetch(CTX + '/etf/portfolio/update.do', { method: 'POST', body: params })
+            .then(function(r) { return r.text(); })
+            .then(function(result) {
+                if (result.includes('success')) {
+                    location.reload();
+                } else {
+                    alert('수정 실패. 다시 시도해주세요.');
+                }
+            });
+    }
+});
 </script>
 
 </body>

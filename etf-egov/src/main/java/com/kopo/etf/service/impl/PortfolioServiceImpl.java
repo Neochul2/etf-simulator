@@ -85,4 +85,9 @@ public class PortfolioServiceImpl implements PortfolioService {
     public int removePortfolio(Long id) {
         return portfolioMapper.deletePortfolio(id);
     }
+
+    @Override
+    public int updatePortfolio(Long id, BigDecimal investAmt) {
+        return portfolioMapper.updatePortfolio(id, investAmt);
+    }
 }

@@ -24,4 +24,10 @@
         DELETE FROM portfolio WHERE id = #{id}
     </delete>
 
+    <update id="updatePortfolio">
+        UPDATE portfolio
+        SET invest_amt = #{investAmt}
+        WHERE id = #{id}
+    </update>
+
 </mapper>

@@ -168,6 +168,37 @@ body { background-color: #f8f9fa; }
 <script>
 var contextPath = '<%=request.getContextPath()%>';
 var currentSymbol = '';
+//네비바 환율 표시
+fetch(contextPath + '/exchange/latest.do')
+    .then(function(r) { return r.json(); })
+    .then(function(d) {
+        document.getElementById('navExchangeRate').innerText =
+            Number(d.rate).toLocaleString();
+    });
+
+// 환율 업데이트 버튼
+function updateExchangeRate() {
+    var btn = document.getElementById('navRateUpdateBtn');
+    btn.disabled = true;
+    btn.innerText = '⏳';
+    fetch(contextPath + '/exchange/update.do', { method: 'POST' })
+        .then(function(r) { return r.json(); })
+        .then(function(d) {
+            if (d.status === 'ok') {
+                document.getElementById('navExchangeRate').innerText =
+                    Number(d.rate).toLocaleString();
+                btn.innerText = '✅';
+            } else {
+                btn.innerText = '❌';
+            }
+            setTimeout(function() {
+                btn.disabled = false;
+                btn.innerText = '🔄';
+            }, 2000);
+        });
+}
+
+
 var currentDivYield = 0;
 var exchangeRateValue = 0;
 

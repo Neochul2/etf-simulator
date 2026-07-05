@@ -28,8 +28,8 @@ body { background-color: #f8f9fa; }
     <div class="container">
         <a class="navbar-brand" href="<%=request.getContextPath()%>/etf/list.do">📊 미국 월배당 ETF</a>
         <ul class="navbar-nav mx-auto">
-            <li class="nav-item"><a class="nav-link" href="<%=request.getContextPath()%>/etf/list.do">ETF 조회</a></li>
-            <li class="nav-item"><a class="nav-link active" href="<%=request.getContextPath()%>/etf/calculator.do">배당금 계산기</a></li>
+            <li class="nav-item"><a class="nav-link active" href="<%=request.getContextPath()%>/etf/list.do">ETF 조회</a></li>
+            <li class="nav-item"><a class="nav-link" href="<%=request.getContextPath()%>/etf/calculator.do">배당금 계산기</a></li>
             <li class="nav-item"><a class="nav-link" href="<%=request.getContextPath()%>/etf/simulator.do">재투자 시뮬레이션</a></li>
             <li class="nav-item"><a class="nav-link" href="<%=request.getContextPath()%>/etf/portfolio.do">내 포트폴리오</a></li>
         </ul>
@@ -176,6 +176,35 @@ body { background-color: #f8f9fa; }
 var contextPath = '<%=request.getContextPath()%>';
 var currentSymbol = '';
 var exchangeRateValue = 0;
+//네비바 환율 표시
+fetch(contextPath + '/exchange/latest.do')
+    .then(function(r) { return r.json(); })
+    .then(function(d) {
+        document.getElementById('navExchangeRate').innerText =
+            Number(d.rate).toLocaleString();
+    });
+
+// 환율 업데이트 버튼
+function updateExchangeRate() {
+    var btn = document.getElementById('navRateUpdateBtn');
+    btn.disabled = true;
+    btn.innerText = '⏳';
+    fetch(contextPath + '/exchange/update.do', { method: 'POST' })
+        .then(function(r) { return r.json(); })
+        .then(function(d) {
+            if (d.status === 'ok') {
+                document.getElementById('navExchangeRate').innerText =
+                    Number(d.rate).toLocaleString();
+                btn.innerText = '✅';
+            } else {
+                btn.innerText = '❌';
+            }
+            setTimeout(function() {
+                btn.disabled = false;
+                btn.innerText = '🔄';
+            }, 2000);
+        });
+}
 
 window.addEventListener('DOMContentLoaded', function() {
     loadExchangeRate();

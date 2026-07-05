@@ -9,4 +9,5 @@ public interface PortfolioService {
     Map<String, Object> getPortfolioData(BigDecimal exchangeRate);
     int addPortfolio(PortfolioVO vo);
     int removePortfolio(Long id);
+    int updatePortfolio(Long id, BigDecimal investAmt);
 }

@@ -60,4 +60,13 @@ public class PortfolioController {
         int result = portfolioService.removePortfolio(id);
         return result > 0 ? "success" : "fail";
     }
+
+    @PostMapping("/etf/portfolio/update.do")
+    @ResponseBody
+    public String updatePortfolio(
+            @RequestParam Long id,
+            @RequestParam BigDecimal investAmt) {
+        int result = portfolioService.updatePortfolio(id, investAmt);
+        return result > 0 ? "success" : "fail";
+    }
 }
