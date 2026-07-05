@@ -66,7 +66,6 @@ body { background-color: #f8f9fa; }
         <div class="card shadow-sm mb-4">
             <div class="card-body">
 
-                <%-- ETF 헤더 (로고 + 이름) --%>
                 <div class="d-flex align-items-center mb-4">
                     <div class="logo-box me-3" id="logoBox">--</div>
                     <div>
@@ -78,7 +77,6 @@ body { background-color: #f8f9fa; }
                     </div>
                 </div>
 
-                <%-- 1행: 현재가 / 배당률 / 배당락일 / 지급일 --%>
                 <div class="row text-center g-3 mb-3">
                     <div class="col-md-3">
                         <div class="card-info">
@@ -106,7 +104,6 @@ body { background-color: #f8f9fa; }
                     </div>
                 </div>
 
-                <%-- 2행: 시작가 / 고가 / 저가 / 거래량 --%>
                 <div class="row text-center g-2 info-row">
                     <div class="col-3">
                         <div class="info-item">
@@ -134,7 +131,6 @@ body { background-color: #f8f9fa; }
                     </div>
                 </div>
 
-                <%-- ETF 설명 --%>
                 <div class="desc-box">
                     <small class="text-muted" id="etfDescription" style="line-height:1.6;"></small>
                     <small class="text-muted d-block mt-1" style="font-size:0.7rem;">
@@ -176,8 +172,8 @@ var exchangeRateValue = 0;
 window.addEventListener('DOMContentLoaded', function() {
     loadExchangeRate();
     loadSymbolList();
-});
-
+});      
+       
 function loadExchangeRate() {
     fetch(contextPath + '/exchange/latest.do')
         .then(function(res) { return res.json(); })
@@ -187,7 +183,7 @@ function loadExchangeRate() {
 }
 
 function loadSymbolList() {
-    fetch(contextPath + '/etf/symbols.do')
+    return fetch(contextPath + '/etf/symbols.do')
         .then(function(res) { return res.json(); })
         .then(function(list) {
             var select = document.getElementById('symbolSelect');
@@ -197,6 +193,14 @@ function loadSymbolList() {
                 opt.text = item.symbol + ' (배당률 ' + item.divYield + '%)';
                 select.appendChild(opt);
             });
+
+            // ← 드롭다운 다 채운 후 여기서 복원
+            var lastSymbol = sessionStorage.getItem('lastSymbol');
+            if (lastSymbol) {
+                document.getElementById('searchInput').value = lastSymbol;
+                document.getElementById('symbolSelect').value = lastSymbol;
+                searchEtf(lastSymbol);
+            }
         });
 }
 
@@ -221,6 +225,9 @@ function runSearch() {
 }
 
 function searchEtf(symbol) {
+    // 검색 시 sessionStorage에 저장 (다른 화면 갔다가 돌아올 때 복원)
+    sessionStorage.setItem('lastSymbol', symbol);
+
     fetch(contextPath + '/etf/' + symbol + '/detail.do')
         .then(function(res) {
             if (!res.ok) throw new Error('조회 실패');
@@ -245,33 +252,25 @@ function renderEtf(data) {
     document.getElementById('etfName').innerText = info.symbol;
     document.getElementById('updatedAt').innerText = 'Polygon.io 기준 · ' + info.updatedAt + ' 업데이트';
 
-    // 검색창 · 드롭다운 양방향 동기화
     document.getElementById('searchInput').value = info.symbol;
     document.getElementById('symbolSelect').value = info.symbol;
 
-    // 기존 정보
     document.getElementById('price').innerText = '$' + info.price;
     document.getElementById('divYield').innerText = info.divYield + '%';
-
-    // ETF 이름 (issuer)
     document.getElementById('issuerName').innerText = info.issuer || '';
 
-    // OHLCV
     document.getElementById('openPrice').innerText = '$' + (info.openPrice || '-');
     document.getElementById('highPrice').innerText = '$' + (info.highPrice || '-');
     document.getElementById('lowPrice').innerText  = '$' + (info.lowPrice  || '-');
     document.getElementById('volume').innerText    = info.volume ? Number(info.volume).toLocaleString() : '-';
 
-    // ETF 설명
     document.getElementById('etfDescription').innerText = info.description || '';
 
-    // 배당락일 · 지급일
     if (dividends.length > 0) {
         document.getElementById('exDivDate').innerText = dividends[0].exDivDate;
         document.getElementById('payDate').innerText   = dividends[0].payDate;
     }
 
-    // 배당 내역 테이블
     var tbody = document.getElementById('dividendTableBody');
     tbody.innerHTML = '';
     dividends.forEach(function(d) {
