@@ -6,12 +6,15 @@
 
     <select id="selectPortfolioList" resultType="com.kopo.etf.vo.PortfolioVO">
         SELECT
-            id,
-            symbol,
-            invest_amt  AS investAmt,
-            created_at  AS createdAt
-        FROM portfolio
-        ORDER BY created_at DESC
+            p.id,
+            p.symbol,
+            p.invest_amt  AS investAmt,
+            p.created_at  AS createdAt,
+            e.issuer      AS issuer,
+            e.div_yield   AS divYield
+        FROM portfolio p
+        LEFT JOIN etf_info e ON p.symbol = e.symbol
+        ORDER BY p.created_at DESC
     </select>
 
     <insert id="insertPortfolio" parameterType="com.kopo.etf.vo.PortfolioVO"
