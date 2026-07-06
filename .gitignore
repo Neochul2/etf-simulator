@@ -8,9 +8,15 @@ venv/
 dist/
 build/
 .env
+__init__
+.python-version
 
 # CSV 데이터
 *.csv
+
+# 로그
+*.log
+fastapi/logs/
 
 # Java / Maven
 target/
@@ -28,7 +34,15 @@ bin/
 *.launch
 .metadata/
 generated/
-context-datasource.xml
+etf-egov/bin/
+etf-egov/target/
+etf-egov/.settings/
+etf-egov/.classpath
+etf-egov/.project
+etf-egov/.factorypath
+
+# FastAPI 예전 흔적 (실제는 WSL에서 운영)
+fastapi/
 
 # IDE
 .vscode/
