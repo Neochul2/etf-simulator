@@ -1,0 +1,17 @@
+# Eclipse 메타데이터
+.metadata/
+
+# Eclipse 빌드 결과물
+etf-egov/bin/
+etf-egov/target/
+etf-egov/.settings/
+etf-egov/.classpath
+etf-egov/.project
+etf-egov/.factorypath
+
+# FastAPI 예전 흔적 (실제는 WSL에서 운영)
+fastapi/
+
+# 기타
+*.class
+*.log
