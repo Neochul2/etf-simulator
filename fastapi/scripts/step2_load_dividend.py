@@ -1,5 +1,5 @@
 """
-step2_load_dividend.py — 적재된 100개 ETF...
+step2_load_dividend.py — 적재된 100개 ETF의 배당 내역 12개월치 적재
 실행: python scripts/step2_load_dividend.py
 """
 import requests
@@ -15,19 +15,22 @@ from database import get_connection
 
 
 def get_dividends_12m(ticker):
-    one_year_ago = (datetime.now() - timedelta(days=365)).strftime("%Y-%m-%d")
-    r = requests.get(
-        "https://api.polygon.io/v3/reference/dividends",
-        params={
-            "ticker": ticker,
-            "ex_dividend_date.gte": one_year_ago,
-            "limit": 50,
-            "order": "desc",
-            "apiKey": POLYGON_API_KEY,
-        },
-        timeout=10,
-    )
-    return r.json().get("results", [])
+    try:
+        one_year_ago = (datetime.now() - timedelta(days=365)).strftime("%Y-%m-%d")
+        r = requests.get(
+            "https://api.polygon.io/v3/reference/dividends",
+            params={
+                "ticker": ticker,
+                "ex_dividend_date.gte": one_year_ago,
+                "limit": 50,
+                "order": "desc",
+                "apiKey": POLYGON_API_KEY,
+            },
+            timeout=5,
+        )
+        return r.json().get("results", [])
+    except Exception:
+        return []
 
 
 # 1. DB에서 100개 티커 목록 가져오기
@@ -44,7 +47,7 @@ INSERT INTO etf_dividend
 VALUES
     (%s, %s, %s, %s)
 ON DUPLICATE KEY UPDATE
-    pay_date = VALUES(pay_date),
+    pay_date    = VALUES(pay_date),
     cash_amount = VALUES(cash_amount)
 """
 

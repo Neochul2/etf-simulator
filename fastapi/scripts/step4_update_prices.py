@@ -17,21 +17,24 @@ from telegram_notify import notify_success, notify_failure
 
 
 def get_ohlcv(ticker):
-    r = requests.get(
-        f"https://api.polygon.io/v2/aggs/ticker/{ticker}/prev",
-        params={"apiKey": POLYGON_API_KEY},
-        timeout=10,
-    )
-    results = r.json().get("results", [])
-    if not results:
+    try:
+        r = requests.get(
+            f"https://api.polygon.io/v2/aggs/ticker/{ticker}/prev",
+            params={"apiKey": POLYGON_API_KEY},
+            timeout=5,
+        )
+        results = r.json().get("results", [])
+        if not results:
+            return None
+        return {
+            "close":  results[0]["c"],
+            "open":   results[0]["o"],
+            "high":   results[0]["h"],
+            "low":    results[0]["l"],
+            "volume": int(results[0]["v"]),
+        }
+    except Exception:
         return None
-    return {
-        "close":  results[0]["c"],
-        "open":   results[0]["o"],
-        "high":   results[0]["h"],
-        "low":    results[0]["l"],
-        "volume": int(results[0]["v"]),
-    }
 
 
 def get_ticker_detail(ticker):
@@ -39,7 +42,7 @@ def get_ticker_detail(ticker):
         r = requests.get(
             f"https://api.polygon.io/v3/reference/tickers/{ticker}",
             params={"apiKey": POLYGON_API_KEY},
-            timeout=10,
+            timeout=5,
         )
         result = r.json().get("results", {})
         return result.get("name", "")
@@ -48,19 +51,22 @@ def get_ticker_detail(ticker):
 
 
 def get_dividends_12m(ticker):
-    one_year_ago = (datetime.now() - timedelta(days=365)).strftime("%Y-%m-%d")
-    r = requests.get(
-        "https://api.polygon.io/v3/reference/dividends",
-        params={
-            "ticker": ticker,
-            "ex_dividend_date.gte": one_year_ago,
-            "limit": 50,
-            "order": "desc",
-            "apiKey": POLYGON_API_KEY,
-        },
-        timeout=10,
-    )
-    return r.json().get("results", [])
+    try:
+        one_year_ago = (datetime.now() - timedelta(days=365)).strftime("%Y-%m-%d")
+        r = requests.get(
+            "https://api.polygon.io/v3/reference/dividends",
+            params={
+                "ticker": ticker,
+                "ex_dividend_date.gte": one_year_ago,
+                "limit": 50,
+                "order": "desc",
+                "apiKey": POLYGON_API_KEY,
+            },
+            timeout=5,
+        )
+        return r.json().get("results", [])
+    except Exception:
+        return []
 
 
 conn = get_connection()
@@ -148,7 +154,6 @@ try:
     if failed:
         print(f"실패 종목: {failed}")
 
-    # 텔레그램 알림
     notify_success(etf_count=success, failed_count=len(failed), failed_list=failed[:5])
 
 except Exception as e:

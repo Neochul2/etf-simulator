@@ -4,12 +4,16 @@ step5_update_exchange.py — 한국수출입은행 API에서 USD/KRW 환율 조�
 """
 import sys
 import os
+from datetime import datetime
 
 sys.path.append(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 
 from services.koreaexim import get_usdkrw
 from database import get_connection
-from telegram_notify import notify_failure
+from telegram_notify import notify_failure, send_message
+
+conn = None
+cursor = None
 
 try:
     conn = get_connection()
@@ -28,9 +32,6 @@ try:
 
     print(f"✅ USD/KRW = {rate_data['rate']} (기준일: {rate_data['date']}) 업서트 완료")
 
-    # 텔레그램 알림
-    from telegram_notify import send_message
-    from datetime import datetime
     send_message(
         f"💱 <b>환율 업데이트 완료</b>\n"
         f"📅 {datetime.now().strftime('%Y-%m-%d %H:%M')}\n"
@@ -42,5 +43,5 @@ except Exception as e:
     notify_failure(f"환율 업데이트 실패: {e}")
 
 finally:
-    cursor.close()
-    conn.close()
+    if cursor: cursor.close()
+    if conn: conn.close()
