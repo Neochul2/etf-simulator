@@ -176,13 +176,6 @@ body { background-color: #f8f9fa; }
 var contextPath = '<%=request.getContextPath()%>';
 var currentSymbol = '';
 var exchangeRateValue = 0;
-//네비바 환율 표시
-fetch(contextPath + '/exchange/latest.do')
-    .then(function(r) { return r.json(); })
-    .then(function(d) {
-        document.getElementById('navExchangeRate').innerText =
-            Number(d.rate).toLocaleString();
-    });
 
 // 환율 업데이트 버튼
 function updateExchangeRate() {
@@ -195,6 +188,7 @@ function updateExchangeRate() {
             if (d.status === 'ok') {
                 document.getElementById('navExchangeRate').innerText =
                     Number(d.rate).toLocaleString();
+                exchangeRateValue = Number(d.rate);
                 btn.innerText = '✅';
             } else {
                 btn.innerText = '❌';
@@ -207,17 +201,17 @@ function updateExchangeRate() {
 }
 
 window.addEventListener('DOMContentLoaded', function() {
-    loadExchangeRate();
-    loadSymbolList();
-});      
-       
-function loadExchangeRate() {
+    // 환율 1번만 호출 — 네비바 표시 + exchangeRateValue 동시 세팅
     fetch(contextPath + '/exchange/latest.do')
         .then(function(res) { return res.json(); })
         .then(function(rate) {
             exchangeRateValue = Number(rate.rate);
+            document.getElementById('navExchangeRate').innerText =
+                exchangeRateValue.toLocaleString();
         });
-}
+
+    loadSymbolList();
+});
 
 function loadSymbolList() {
     return fetch(contextPath + '/etf/symbols.do')
@@ -231,7 +225,7 @@ function loadSymbolList() {
                 select.appendChild(opt);
             });
 
-            // ← 드롭다운 다 채운 후 여기서 복원
+            // 드롭다운 다 채운 후 마지막 종목 복원
             var lastSymbol = sessionStorage.getItem('lastSymbol');
             if (lastSymbol) {
                 document.getElementById('searchInput').value = lastSymbol;
@@ -263,8 +257,7 @@ function runSearch() {
 
 function searchEtf(symbol) {
     sessionStorage.setItem('lastSymbol', symbol);
-    
-    // 로딩 표시
+
     document.getElementById('resultArea').style.display = 'block';
     document.getElementById('logoBox').innerText = '...';
     document.getElementById('etfName').innerText = '조회 중...';

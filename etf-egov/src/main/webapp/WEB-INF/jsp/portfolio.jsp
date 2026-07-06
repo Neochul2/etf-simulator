@@ -1,6 +1,4 @@
 <%@ page language="java" contentType="text/html; charset=UTF-8" pageEncoding="UTF-8"%>
-<%@ taglib prefix="c" uri="http://java.sun.com/jsp/jstl/core"%>
-<%@ taglib prefix="fmt" uri="http://java.sun.com/jsp/jstl/fmt"%>
 <!DOCTYPE html>
 <html lang="ko">
 <head>
@@ -77,37 +75,27 @@ body { background-color: #f8f9fa; }
         <div class="col-md-3">
             <div class="summary-card">
                 <div class="label">총 투자금액</div>
-                <div class="value text-dark">
-                    <fmt:formatNumber value="${totalAmt}" pattern="#,##0"/>원
-                </div>
-                <div class="text-muted" style="font-size:0.82rem;">
-                    $<fmt:formatNumber value="${totalAmtUsd}" pattern="#,##0.00"/>
-                </div>
+                <div class="value text-dark" id="totalAmt">-</div>
+                <div class="text-muted" id="totalAmtUsd" style="font-size:0.82rem;">-</div>
             </div>
         </div>
         <div class="col-md-3">
             <div class="summary-card">
                 <div class="label">세후 월배당금 합계</div>
-                <div class="value text-success">
-                    <fmt:formatNumber value="${totalMonthlyDiv}" pattern="#,##0"/>원
-                </div>
-                <div class="text-muted" style="font-size:0.82rem;">
-                    $<fmt:formatNumber value="${totalMonthlyDivUsd}" pattern="#,##0.00"/>
-                </div>
+                <div class="value text-success" id="totalMonthlyDiv">-</div>
+                <div class="text-muted" id="totalMonthlyDivUsd" style="font-size:0.82rem;">-</div>
             </div>
         </div>
         <div class="col-md-3">
             <div class="summary-card">
                 <div class="label">세후 연배당금 합계</div>
-                <div class="value text-success">
-                    <fmt:formatNumber value="${totalMonthlyDiv * 12}" pattern="#,##0"/>원
-                </div>
+                <div class="value text-success" id="totalYearlyDiv">-</div>
             </div>
         </div>
         <div class="col-md-3">
             <div class="summary-card">
                 <div class="label">보유 종목 수</div>
-                <div class="value text-primary">${portfolioList.size()}개</div>
+                <div class="value text-primary" id="portfolioCount">-</div>
             </div>
         </div>
     </div>
@@ -116,66 +104,12 @@ body { background-color: #f8f9fa; }
     <div class="card shadow-sm">
         <div class="card-body">
             <h6 class="fw-bold mb-3">📋 보유 종목 목록</h6>
-            <c:choose>
-                <c:when test="${empty portfolioList}">
-                    <p class="text-muted text-center py-4">아직 추가된 종목이 없습니다. 위에서 종목을 추가해주세요.</p>
-                </c:when>
-                <c:otherwise>
-                    <div class="table-responsive">
-                        <table class="table table-hover align-middle">
-                            <thead class="table-light">
-                                <tr>
-                                    <th>종목</th>
-                                    <th>ETF명</th>
-                                    <th>배당률</th>
-                                    <th>투자금액</th>
-                                    <th>세후 월배당금</th>
-                                    <th>세후 연배당금</th>
-                                    <th>삭제</th>
-                                </tr>
-                            </thead>
-                            <tbody>
-                                <c:forEach var="p" items="${portfolioList}">
-                                <tr>
-                                    <td><span class="badge bg-primary">${p.symbol}</span></td>
-                                    <td style="font-size:0.85rem; color:#6c757d;">${p.issuer}</td>
-                                    <td class="text-success fw-bold">
-                                        <fmt:formatNumber value="${p.divYield}" pattern="#,##0.00"/>%
-                                    </td>
-                                    <td class="invest-amt-cell" data-id="${p.id}">
-                                        <span class="amt-display">
-                                            <fmt:formatNumber value="${p.investAmt}" pattern="#,##0"/>원<br>
-                                            <small class="text-muted">$<fmt:formatNumber value="${p.investUsd}" pattern="#,##0.00"/></small>
-                                            <br>
-                                            <a href="javascript:void(0)" class="amt-edit-btn">✏️ 수정</a>
-                                        </span>
-                                        <div class="amt-edit" style="display:none;">
-                                            <input type="text" class="form-control form-control-sm amt-input"
-                                                   value="<fmt:formatNumber value="${p.investAmt}" pattern="#,##0"/>">
-                                            <div class="mt-1">
-                                                <button class="btn btn-sm btn-primary amt-save-btn">저장</button>
-                                                <button class="btn btn-sm btn-outline-secondary amt-cancel-btn">취소</button>
-                                            </div>
-                                        </div>
-                                    </td>
-                                    <td class="text-success fw-bold">
-                                        <fmt:formatNumber value="${p.monthlyDiv}" pattern="#,##0"/>원<br>
-                                        <small class="text-muted">$<fmt:formatNumber value="${p.monthlyDivUsd}" pattern="#,##0.00"/></small>
-                                    </td>
-                                    <td class="text-success">
-                                        <fmt:formatNumber value="${p.monthlyDiv * 12}" pattern="#,##0"/>원
-                                    </td>
-                                    <td>
-                                        <button class="btn btn-sm btn-outline-danger"
-                                                onclick="deletePortfolio(${p.id})">삭제</button>
-                                    </td>
-                                </tr>
-                                </c:forEach>
-                            </tbody>
-                        </table>
-                    </div>
-                </c:otherwise>
-            </c:choose>
+            <div id="portfolioTableArea">
+                <p class="text-muted text-center py-4">
+                    <span class="spinner-border spinner-border-sm me-2"></span>
+                    데이터 불러오는 중...
+                </p>
+            </div>
         </div>
     </div>
 
@@ -190,8 +124,8 @@ body { background-color: #f8f9fa; }
 <script src="<%=request.getContextPath()%>/bootstrap/js/bootstrap.bundle.min.js"></script>
 <script>
 var CTX = '<%=request.getContextPath()%>';
+var exchangeRateValue = 0;
 
-// 숫자 콤마 포맷
 function formatNumber(val) {
     var num = val.toString().replace(/,/g, '').replace(/[^0-9]/g, '');
     return num ? Number(num).toLocaleString() : '';
@@ -199,16 +133,13 @@ function formatNumber(val) {
 function parseNumber(val) {
     return parseFloat(val.toString().replace(/,/g, '')) || 0;
 }
+function numFmt(n) {
+    return Math.round(Number(n)).toLocaleString();
+}
+function usdFmt(n) {
+    return Number(n).toFixed(2);
+}
 
-// 네비바 환율 표시
-fetch(CTX + '/exchange/latest.do')
-    .then(function(r) { return r.json(); })
-    .then(function(d) {
-        document.getElementById('navExchangeRate').innerText =
-            Number(d.rate).toLocaleString();
-    });
-
-// 환율 업데이트 버튼
 function updateExchangeRate() {
     var btn = document.getElementById('navRateUpdateBtn');
     btn.disabled = true;
@@ -219,6 +150,7 @@ function updateExchangeRate() {
             if (d.status === 'ok') {
                 document.getElementById('navExchangeRate').innerText =
                     Number(d.rate).toLocaleString();
+                exchangeRateValue = Number(d.rate);
                 btn.innerText = '✅';
             } else {
                 btn.innerText = '❌';
@@ -230,10 +162,18 @@ function updateExchangeRate() {
         });
 }
 
-window.onload = function() {
-    // 환율 표시
-    var rate = ${exchangeRate};
-    document.getElementById('exchangeRateDisp').innerText = rate.toLocaleString();
+document.addEventListener('DOMContentLoaded', function() {
+
+    // 환율 1번만 호출 — 네비바 + exchangeRateDisp 동시 세팅
+    fetch(CTX + '/exchange/latest.do')
+        .then(function(r) { return r.json(); })
+        .then(function(d) {
+            exchangeRateValue = Number(d.rate);
+            document.getElementById('navExchangeRate').innerText =
+                exchangeRateValue.toLocaleString();
+            document.getElementById('exchangeRateDisp').innerText =
+                exchangeRateValue.toLocaleString();
+        });
 
     // 드롭다운 ETF 목록 로드
     fetch(CTX + '/etf/symbols.do')
@@ -248,19 +188,90 @@ window.onload = function() {
             });
         });
 
+    // 포트폴리오 데이터 로드
+    loadPortfolioData();
+
     // 투자금액 콤마 자동 추가
     document.getElementById('addInvestAmt').addEventListener('input', function() {
         this.value = formatNumber(this.value);
     });
-};
+});
 
-// 종목 추가
+function loadPortfolioData() {
+    fetch(CTX + '/etf/portfolio/data.do')
+        .then(function(r) { return r.json(); })
+        .then(function(data) {
+            renderSummary(data);
+            renderTable(data.portfolioList);
+        });
+}
+
+function renderSummary(data) {
+    document.getElementById('totalAmt').innerText =
+        numFmt(data.totalAmt) + '원';
+    document.getElementById('totalAmtUsd').innerText =
+        '$' + usdFmt(data.totalAmtUsd);
+    document.getElementById('totalMonthlyDiv').innerText =
+        numFmt(data.totalMonthlyDiv) + '원';
+    document.getElementById('totalMonthlyDivUsd').innerText =
+        '$' + usdFmt(data.totalMonthlyDivUsd);
+    document.getElementById('totalYearlyDiv').innerText =
+        numFmt(Math.round(Number(data.totalMonthlyDiv)) * 12) + '원';
+    document.getElementById('portfolioCount').innerText =
+        data.portfolioList.length + '개';
+}
+
+function renderTable(list) {
+    var area = document.getElementById('portfolioTableArea');
+    if (!list || list.length === 0) {
+        area.innerHTML = '<p class="text-muted text-center py-4">아직 추가된 종목이 없습니다. 위에서 종목을 추가해주세요.</p>';
+        return;
+    }
+
+    var html = '<div class="table-responsive"><table class="table table-hover align-middle">'
+        + '<thead class="table-light"><tr>'
+        + '<th>종목</th><th>ETF명</th><th>배당률</th><th>투자금액</th>'
+        + '<th>세후 월배당금</th><th>세후 연배당금</th><th>삭제</th>'
+        + '</tr></thead><tbody>';
+
+    list.forEach(function(p) {
+        html += '<tr>'
+            + '<td><span class="badge bg-primary">' + p.symbol + '</span></td>'
+            + '<td style="font-size:0.85rem;color:#6c757d;">' + (p.issuer || '') + '</td>'
+            + '<td class="text-success fw-bold">' + Number(p.divYield).toFixed(2) + '%</td>'
+            + '<td class="invest-amt-cell" data-id="' + p.id + '">'
+            +   '<span class="amt-display">'
+            +     numFmt(p.investAmt) + '원<br>'
+            +     '<small class="text-muted">$' + usdFmt(p.investUsd) + '</small><br>'
+            +     '<a href="javascript:void(0)" class="amt-edit-btn">✏️ 수정</a>'
+            +   '</span>'
+            +   '<div class="amt-edit" style="display:none;">'
+            +     '<input type="text" class="form-control form-control-sm amt-input" value="' + numFmt(p.investAmt) + '">'
+            +     '<div class="mt-1">'
+            +       '<button class="btn btn-sm btn-primary amt-save-btn">저장</button>'
+            +       '<button class="btn btn-sm btn-outline-secondary amt-cancel-btn">취소</button>'
+            +     '</div>'
+            +   '</div>'
+            + '</td>'
+            + '<td class="text-success fw-bold">'
+            +   numFmt(p.monthlyDiv) + '원<br>'
+            +   '<small class="text-muted">$' + usdFmt(p.monthlyDivUsd) + '</small>'
+            + '</td>'
+            + '<td class="text-success">' + numFmt(Number(p.monthlyDiv) * 12) + '원</td>'
+            + '<td><button class="btn btn-sm btn-outline-danger" onclick="deletePortfolio(' + p.id + ')">삭제</button></td>'
+            + '</tr>';
+    });
+
+    html += '</tbody></table></div>';
+    area.innerHTML = html;
+}
+
 function addPortfolio() {
     var symbol    = document.getElementById('addSymbol').value;
     var investAmt = parseNumber(document.getElementById('addInvestAmt').value);
 
-    if (!symbol)      { alert('종목을 선택해주세요.'); return; }
-    if (!investAmt)   { alert('투자금액을 입력해주세요.'); return; }
+    if (!symbol)    { alert('종목을 선택해주세요.'); return; }
+    if (!investAmt) { alert('투자금액을 입력해주세요.'); return; }
 
     var params = new URLSearchParams();
     params.append('symbol',    symbol);
@@ -270,14 +281,15 @@ function addPortfolio() {
         .then(function(r) { return r.text(); })
         .then(function(result) {
             if (result.includes('success')) {
-                location.reload();
+                document.getElementById('addSymbol').value = '';
+                document.getElementById('addInvestAmt').value = '';
+                loadPortfolioData();
             } else {
                 alert('추가 실패. 다시 시도해주세요.');
             }
         });
 }
 
-// 종목 삭제
 function deletePortfolio(id) {
     if (!confirm('이 종목을 삭제하시겠습니까?')) return;
 
@@ -288,16 +300,13 @@ function deletePortfolio(id) {
         .then(function(r) { return r.text(); })
         .then(function(result) {
             if (result.includes('success')) {
-                location.reload();
+                loadPortfolioData();
             } else {
                 alert('삭제 실패. 다시 시도해주세요.');
             }
         });
 }
 
-// ===== 투자금액 인라인 수정 =====
-
-// 콤마 자동 추가 (수정 입력창)
 document.addEventListener('input', function(e) {
     if (e.target.classList.contains('amt-input')) {
         e.target.value = formatNumber(e.target.value);
@@ -305,22 +314,18 @@ document.addEventListener('input', function(e) {
 });
 
 document.addEventListener('click', function(e) {
-
-    // 수정 버튼 → 입력창 표시
     if (e.target.classList.contains('amt-edit-btn')) {
         var td = e.target.closest('.invest-amt-cell');
         td.querySelector('.amt-display').style.display = 'none';
         td.querySelector('.amt-edit').style.display = 'block';
     }
 
-    // 취소 → 원래 표시로 복귀
     if (e.target.classList.contains('amt-cancel-btn')) {
         var td = e.target.closest('.invest-amt-cell');
         td.querySelector('.amt-display').style.display = '';
         td.querySelector('.amt-edit').style.display = 'none';
     }
 
-    // 저장 → update.do 호출
     if (e.target.classList.contains('amt-save-btn')) {
         var td = e.target.closest('.invest-amt-cell');
         var id = td.dataset.id;
@@ -339,7 +344,7 @@ document.addEventListener('click', function(e) {
             .then(function(r) { return r.text(); })
             .then(function(result) {
                 if (result.includes('success')) {
-                    location.reload();
+                    loadPortfolioData();
                 } else {
                     alert('수정 실패. 다시 시도해주세요.');
                 }
