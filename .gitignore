@@ -1,7 +1,39 @@
-# Eclipse 메타데이터
-.metadata/
+# Python
+__pycache__/
+*.py[cod]
+*.pyo
+.venv/
+venv/
+*.egg-info/
+dist/
+build/
+.env
+__init__
+.python-version
 
-# Eclipse 빌드 결과물
+# CSV 데이터
+*.csv
+
+# 로그
+*.log
+fastapi/logs/
+
+# Java / Maven
+target/
+bin/
+*.class
+*.jar
+*.war
+*.ear
+
+# Eclipse / eGovFrame
+.classpath
+.project
+.settings/
+.factorypath
+*.launch
+.metadata/
+generated/
 etf-egov/bin/
 etf-egov/target/
 etf-egov/.settings/
@@ -12,6 +44,6 @@ etf-egov/.factorypath
 # FastAPI 예전 흔적 (실제는 WSL에서 운영)
 fastapi/
 
-# 기타
-*.class
-*.log
+# IDE
+.vscode/
+.idea/
