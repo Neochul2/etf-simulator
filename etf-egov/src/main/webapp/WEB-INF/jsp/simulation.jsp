@@ -186,25 +186,19 @@ var selectedMonths = 60;
 var exchangeRateValue = 0;
 var currentDivYield = 0;
 var lastSimResult = null;
-//네비바 환율 표시
-fetch('<%=request.getContextPath()%>/exchange/latest.do')
-    .then(function(r) { return r.json(); })
-    .then(function(d) {
-        document.getElementById('navExchangeRate').innerText =
-            Number(d.rate).toLocaleString();
-    });
 
 // 환율 업데이트 버튼
 function updateExchangeRate() {
     var btn = document.getElementById('navRateUpdateBtn');
     btn.disabled = true;
     btn.innerText = '⏳';
-    fetch('<%=request.getContextPath()%>/exchange/update.do', { method: 'POST' })
+    fetch(contextPath + '/exchange/update.do', { method: 'POST' })
         .then(function(r) { return r.json(); })
         .then(function(d) {
             if (d.status === 'ok') {
                 document.getElementById('navExchangeRate').innerText =
                     Number(d.rate).toLocaleString();
+                exchangeRateValue = Number(d.rate);
                 btn.innerText = '✅';
             } else {
                 btn.innerText = '❌';
@@ -215,13 +209,12 @@ function updateExchangeRate() {
             }, 2000);
         });
 }
-// 숫자 → 콤마 포맷
+
 function formatNumber(val) {
     var num = val.toString().replace(/,/g, '').replace(/[^0-9]/g, '');
     return num ? Number(num).toLocaleString() : '';
 }
 
-// 콤마 제거 후 숫자 반환
 function parseNumber(val) {
     return parseFloat(val.toString().replace(/,/g, '')) || 0;
 }
@@ -232,11 +225,15 @@ window.addEventListener('DOMContentLoaded', function() {
 });
 
 function loadExchangeRate() {
+    // 환율 1번만 호출 — 네비바 + exchangeRate 카드 + exchangeRateValue 동시 세팅
     fetch(contextPath + '/exchange/latest.do')
         .then(function(res) { return res.json(); })
         .then(function(rate) {
             exchangeRateValue = Number(rate.rate);
-            document.getElementById('exchangeRate').innerText = exchangeRateValue.toLocaleString();
+            document.getElementById('navExchangeRate').innerText =
+                exchangeRateValue.toLocaleString();
+            document.getElementById('exchangeRate').innerText =
+                exchangeRateValue.toLocaleString();
             updateUsdConverted();
         });
 }
@@ -282,7 +279,6 @@ function loadEtfInfo(symbol) {
         });
 }
 
-// 투자금액 콤마 자동 추가
 document.getElementById('initialAmount').addEventListener('input', function() {
     this.value = formatNumber(this.value);
     updateUsdConverted();

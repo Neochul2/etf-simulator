@@ -168,13 +168,8 @@ body { background-color: #f8f9fa; }
 <script>
 var contextPath = '<%=request.getContextPath()%>';
 var currentSymbol = '';
-//네비바 환율 표시
-fetch(contextPath + '/exchange/latest.do')
-    .then(function(r) { return r.json(); })
-    .then(function(d) {
-        document.getElementById('navExchangeRate').innerText =
-            Number(d.rate).toLocaleString();
-    });
+var currentDivYield = 0;
+var exchangeRateValue = 0;
 
 // 환율 업데이트 버튼
 function updateExchangeRate() {
@@ -187,6 +182,9 @@ function updateExchangeRate() {
             if (d.status === 'ok') {
                 document.getElementById('navExchangeRate').innerText =
                     Number(d.rate).toLocaleString();
+                exchangeRateValue = Number(d.rate);
+                document.getElementById('exchangeRate').innerText =
+                    exchangeRateValue.toLocaleString() + ' KRW / USD';
                 btn.innerText = '✅';
             } else {
                 btn.innerText = '❌';
@@ -198,20 +196,19 @@ function updateExchangeRate() {
         });
 }
 
-
-var currentDivYield = 0;
-var exchangeRateValue = 0;
-
 window.addEventListener('DOMContentLoaded', function() {
     loadExchangeRate();
     loadSymbolList();
 });
 
 function loadExchangeRate() {
+    // 환율 1번만 호출 — 네비바 + 환율 카드 + exchangeRateValue 동시 세팅
     fetch(contextPath + '/exchange/latest.do')
         .then(function(res) { return res.json(); })
         .then(function(rate) {
             exchangeRateValue = Number(rate.rate);
+            document.getElementById('navExchangeRate').innerText =
+                exchangeRateValue.toLocaleString();
             document.getElementById('exchangeRate').innerText =
                 exchangeRateValue.toLocaleString() + ' KRW / USD';
             updateUsdConverted();
@@ -232,7 +229,6 @@ function loadSymbolList() {
         });
 }
 
-// 투자금액 콤마 자동 추가
 document.getElementById('investAmount').addEventListener('input', function() {
     var val = this.value.replace(/,/g, '').replace(/[^0-9]/g, '');
     if (val) this.value = Number(val).toLocaleString();
