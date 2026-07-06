@@ -1,6 +1,7 @@
 package com.kopo.etf.controller;
 
 import java.math.BigDecimal;
+import java.util.HashMap;
 import java.util.Map;
 
 import javax.annotation.Resource;
@@ -42,29 +43,62 @@ public class PortfolioController {
 
     @PostMapping("/etf/portfolio/add.do")
     @ResponseBody
-    public String addPortfolio(
+    public Map<String, Object> addPortfolio(
             @RequestParam String symbol,
             @RequestParam BigDecimal investAmt) {
         PortfolioVO vo = new PortfolioVO();
         vo.setSymbol(symbol);
         vo.setInvestAmt(investAmt);
-        int result = portfolioService.addPortfolio(vo);
-        return result > 0 ? "success" : "fail";
+        int added = portfolioService.addPortfolio(vo);
+
+        Map<String, Object> result = new HashMap<>();
+        if (added > 0) {
+            ExchangeRateVO rateVO = exchangeRateService.getLatestRate();
+            BigDecimal exchangeRate = rateVO != null ? rateVO.getRate() : new BigDecimal("1400");
+            Map<String, Object> data = portfolioService.getPortfolioData(exchangeRate);
+            result.put("status", "success");
+            result.putAll(data);
+        } else {
+            result.put("status", "fail");
+        }
+        return result;
     }
 
     @PostMapping("/etf/portfolio/delete.do")
     @ResponseBody
-    public String deletePortfolio(@RequestParam Long id) {
-        int result = portfolioService.removePortfolio(id);
-        return result > 0 ? "success" : "fail";
+    public Map<String, Object> deletePortfolio(@RequestParam Long id) {
+        int deleted = portfolioService.removePortfolio(id);
+
+        Map<String, Object> result = new HashMap<>();
+        if (deleted > 0) {
+            ExchangeRateVO rateVO = exchangeRateService.getLatestRate();
+            BigDecimal exchangeRate = rateVO != null ? rateVO.getRate() : new BigDecimal("1400");
+            Map<String, Object> data = portfolioService.getPortfolioData(exchangeRate);
+            result.put("status", "success");
+            result.putAll(data);
+        } else {
+            result.put("status", "fail");
+        }
+        return result;
     }
 
     @PostMapping("/etf/portfolio/update.do")
     @ResponseBody
-    public String updatePortfolio(
+    public Map<String, Object> updatePortfolio(
             @RequestParam Long id,
             @RequestParam BigDecimal investAmt) {
-        int result = portfolioService.updatePortfolio(id, investAmt);
-        return result > 0 ? "success" : "fail";
+        int updated = portfolioService.updatePortfolio(id, investAmt);
+
+        Map<String, Object> result = new HashMap<>();
+        if (updated > 0) {
+            ExchangeRateVO rateVO = exchangeRateService.getLatestRate();
+            BigDecimal exchangeRate = rateVO != null ? rateVO.getRate() : new BigDecimal("1400");
+            Map<String, Object> data = portfolioService.getPortfolioData(exchangeRate);
+            result.put("status", "success");
+            result.putAll(data);
+        } else {
+            result.put("status", "fail");
+        }
+        return result;
     }
 }
