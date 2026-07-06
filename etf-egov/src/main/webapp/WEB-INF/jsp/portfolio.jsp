@@ -61,7 +61,7 @@ body { background-color: #f8f9fa; }
                     <input type="text" class="form-control" id="addInvestAmt" placeholder="예: 5,000,000">
                 </div>
                 <div class="col-md-2">
-                    <button class="btn btn-primary w-100" onclick="addPortfolio()">추가</button>
+                    <button class="btn btn-primary w-100" id="addBtn" onclick="addPortfolio()">추가</button>
                 </div>
             </div>
             <small class="text-muted mt-2 d-block">
@@ -197,19 +197,13 @@ document.addEventListener('DOMContentLoaded', function() {
     });
 });
 
-// 포트폴리오 전체 데이터 로드
 function loadPortfolioData() {
     fetch(CTX + '/etf/portfolio/data.do')
         .then(function(r) { return r.json(); })
         .then(function(data) {
-            renderAll(data);
+            renderSummary(data);
+            renderTable(data.portfolioList);
         });
-}
-
-// 서버 응답으로 요약카드 + 테이블 한번에 갱신
-function renderAll(data) {
-    renderSummary(data);
-    renderTable(data.portfolioList);
 }
 
 function renderSummary(data) {
@@ -272,7 +266,7 @@ function renderTable(list) {
     area.innerHTML = html;
 }
 
-// 종목 추가 — 서버에서 재계산 결과 받아 화면 갱신
+// 종목 추가
 function addPortfolio() {
     var symbol    = document.getElementById('addSymbol').value;
     var investAmt = parseNumber(document.getElementById('addInvestAmt').value);
@@ -280,41 +274,56 @@ function addPortfolio() {
     if (!symbol)    { alert('종목을 선택해주세요.'); return; }
     if (!investAmt) { alert('투자금액을 입력해주세요.'); return; }
 
+    // 추가 중 버튼 비활성화
+    var btn = document.getElementById('addBtn');
+    btn.disabled = true;
+    btn.innerText = '추가 중...';
+
     var params = new URLSearchParams();
     params.append('symbol',    symbol);
     params.append('investAmt', investAmt);
 
     fetch(CTX + '/etf/portfolio/add.do', { method: 'POST', body: params })
-        .then(function(r) { return r.json(); })
+        .then(function(r) { return r.text(); })
         .then(function(result) {
-            if (result.status === 'success') {
-                document.getElementById('addSymbol').value = '';
-                document.getElementById('addInvestAmt').value = '';
-                renderAll(result);
-            } else {
-                alert('추가 실패. 다시 시도해주세요.');
-            }
+            document.getElementById('addSymbol').value = '';
+            document.getElementById('addInvestAmt').value = '';
+            loadPortfolioData();
+        })
+        .catch(function() {
+            // 타임아웃 등 오류 시에도 재조회 (실제로는 DB에 저장됐을 수 있음)
+            loadPortfolioData();
+        })
+        .finally(function() {
+            btn.disabled = false;
+            btn.innerText = '추가';
         });
 }
 
-// 종목 삭제 — 서버에서 재계산 결과 받아 화면 갱신
+// 종목 삭제
 function deletePortfolio(id) {
     if (!confirm('이 종목을 삭제하시겠습니까?')) return;
 
     var params = new URLSearchParams();
     params.append('id', id);
 
+    // 삭제 중 표시
+    var btn = event.target;
+    btn.disabled = true;
+    btn.innerText = '삭제 중...';
+
     fetch(CTX + '/etf/portfolio/delete.do', { method: 'POST', body: params })
-        .then(function(r) { return r.json(); })
+        .then(function(r) { return r.text(); })
         .then(function(result) {
-            if (result.status === 'success') {
-                renderAll(result);
-            } else {
-                alert('삭제 실패. 다시 시도해주세요.');
-            }
+            loadPortfolioData();
+        })
+        .catch(function() {
+            // 타임아웃 등 오류 시에도 재조회
+            loadPortfolioData();
         });
 }
 
+// 콤마 자동 추가 (수정 입력창)
 document.addEventListener('input', function(e) {
     if (e.target.classList.contains('amt-input')) {
         e.target.value = formatNumber(e.target.value);
@@ -322,19 +331,21 @@ document.addEventListener('input', function(e) {
 });
 
 document.addEventListener('click', function(e) {
+    // 수정 버튼
     if (e.target.classList.contains('amt-edit-btn')) {
         var td = e.target.closest('.invest-amt-cell');
         td.querySelector('.amt-display').style.display = 'none';
         td.querySelector('.amt-edit').style.display = 'block';
     }
 
+    // 취소
     if (e.target.classList.contains('amt-cancel-btn')) {
         var td = e.target.closest('.invest-amt-cell');
         td.querySelector('.amt-display').style.display = '';
         td.querySelector('.amt-edit').style.display = 'none';
     }
 
-    // 투자금액 수정 — 서버에서 재계산 결과 받아 화면 갱신
+    // 저장
     if (e.target.classList.contains('amt-save-btn')) {
         var td = e.target.closest('.invest-amt-cell');
         var id = td.dataset.id;
@@ -345,18 +356,22 @@ document.addEventListener('click', function(e) {
             return;
         }
 
+        var saveBtn = e.target;
+        saveBtn.disabled = true;
+        saveBtn.innerText = '저장 중...';
+
         var params = new URLSearchParams();
         params.append('id', id);
         params.append('investAmt', newAmt);
 
         fetch(CTX + '/etf/portfolio/update.do', { method: 'POST', body: params })
-            .then(function(r) { return r.json(); })
+            .then(function(r) { return r.text(); })
             .then(function(result) {
-                if (result.status === 'success') {
-                    renderAll(result);
-                } else {
-                    alert('수정 실패. 다시 시도해주세요.');
-                }
+                loadPortfolioData();
+            })
+            .catch(function() {
+                // 타임아웃 등 오류 시에도 재조회
+                loadPortfolioData();
             });
     }
 });
