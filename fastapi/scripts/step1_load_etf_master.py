@@ -1,6 +1,6 @@
 """
-step2_load_dividend.py — 적재된 100개 ETF...
-실행: python scripts/step2_load_dividend.py
+step1_load_etf_master.py — ETFdb CSV에서 시총 상위 100개 추출 → Polygon에서 가격/배당 조회 → DB 적재
+실행: python scripts/step1_load_etf_master.py
 """
 import requests
 import pandas as pd
@@ -14,7 +14,8 @@ sys.path.append(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 from config import POLYGON_API_KEY
 from database import get_connection
 
-CSV_PATH = os.path.join(os.path.dirname(os.path.abspath(__file__)), "etfdb_screener_6.29.csv")
+# data/ 폴더로 경로 변경
+CSV_PATH = os.path.join(os.path.dirname(os.path.dirname(os.path.abspath(__file__))), "data", "etfdb_screener_6.29.csv")
 TOP_N = 100
 
 
@@ -51,7 +52,7 @@ def get_dividends_12m(ticker):
     return r.json().get("results", [])
 
 
-# 1. CSV 로드 + 시총 상위 100개 추출 (정렬용으로만 사용, DB엔 저장 안 함)
+# 1. CSV 로드 + 시총 상위 100개 추출
 print("CSV 로드 중...")
 df = pd.read_csv(CSV_PATH, header=1)
 df.columns = df.columns.str.strip()
@@ -61,7 +62,7 @@ tickers = top100["Symbol"].tolist()
 print(f"시총 상위 {len(tickers)}개 추출 완료")
 print(f"상위 5개: {tickers[:5]}")
 
-# 2. DB 연결 (증분 업서트 — 삭제 없음)
+# 2. DB 연결
 conn = get_connection()
 cursor = conn.cursor()
 

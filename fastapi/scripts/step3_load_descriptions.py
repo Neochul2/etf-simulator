@@ -11,7 +11,7 @@ sys.path.append(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 from database import get_connection
 
 # CSV 경로 (fastapi/ 폴더 기준)
-CSV_PATH = os.path.join(os.path.dirname(os.path.dirname(os.path.abspath(__file__))), 'etf_descriptions.csv')
+CSV_PATH = os.path.join(os.path.dirname(os.path.dirname(os.path.abspath(__file__))), "data", "etf_descriptions.csv")
 
 conn = get_connection()
 cursor = conn.cursor()
