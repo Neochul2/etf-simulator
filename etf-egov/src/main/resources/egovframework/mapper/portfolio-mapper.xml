@@ -1,0 +1,36 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+    "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<mapper namespace="com.kopo.etf.mapper.PortfolioMapper">
+
+    <select id="selectPortfolioList" resultType="com.kopo.etf.vo.PortfolioVO">
+        SELECT
+            p.id,
+            p.symbol,
+            p.invest_amt  AS investAmt,
+            p.created_at  AS createdAt,
+            e.issuer      AS issuer,
+            e.div_yield   AS divYield
+        FROM portfolio p
+        LEFT JOIN etf_info e ON p.symbol = e.symbol
+        ORDER BY p.created_at DESC
+    </select>
+
+    <insert id="insertPortfolio" parameterType="com.kopo.etf.vo.PortfolioVO"
+            useGeneratedKeys="true" keyProperty="id">
+        INSERT INTO portfolio (symbol, invest_amt)
+        VALUES (#{symbol}, #{investAmt})
+    </insert>
+
+    <delete id="deletePortfolio" parameterType="Long">
+        DELETE FROM portfolio WHERE id = #{id}
+    </delete>
+
+    <update id="updatePortfolio">
+        UPDATE portfolio
+        SET invest_amt = #{investAmt}
+        WHERE id = #{id}
+    </update>
+
+</mapper>
