@@ -151,7 +151,7 @@ body { background-color: #f8f9fa; }
 
         <div class="card shadow-sm mb-4">
             <div class="card-body">
-                <h6 class="mb-3">최근 6개월 배당 지급 내역</h6>
+                <h6 class="mb-3">최근 12개월 배당 지급 내역</h6>
                 <table class="table table-hover">
                     <thead>
                         <tr>

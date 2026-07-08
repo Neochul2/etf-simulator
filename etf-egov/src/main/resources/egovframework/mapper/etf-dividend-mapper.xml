@@ -21,7 +21,7 @@
         FROM etf_dividend
         WHERE symbol = #{symbol}
         ORDER BY ex_div_date DESC
-        LIMIT 6
+        LIMIT 12
     </select>
 
 </mapper>
