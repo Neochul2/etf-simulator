@@ -1,4 +1,5 @@
-![Uploading image.png…]()
+<img width="754" height="1008" alt="image" src="https://github.com/user-attachments/assets/04e7f1b2-15a9-4f62-8e3d-20213f41a377" />
+
 
 # 미국 월배당 ETF 시뮬레이터
 
