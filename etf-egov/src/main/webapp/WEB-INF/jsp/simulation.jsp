@@ -183,11 +183,9 @@
 var contextPath = '<%=request.getContextPath()%>';
 var currentSymbol = '';
 var selectedMonths = 60;
-var exchangeRateValue = 0;
 var currentDivYield = 0;
 var lastSimResult = null;
 
-// 환율 업데이트 버튼
 function updateExchangeRate() {
     var btn = document.getElementById('navRateUpdateBtn');
     btn.disabled = true;
@@ -198,7 +196,8 @@ function updateExchangeRate() {
             if (d.status === 'ok') {
                 document.getElementById('navExchangeRate').innerText =
                     Number(d.rate).toLocaleString();
-                exchangeRateValue = Number(d.rate);
+                document.getElementById('exchangeRate').innerText =
+                    Number(d.rate).toLocaleString();
                 btn.innerText = '✅';
             } else {
                 btn.innerText = '❌';
@@ -225,16 +224,13 @@ window.addEventListener('DOMContentLoaded', function() {
 });
 
 function loadExchangeRate() {
-    // 환율 1번만 호출 — 네비바 + exchangeRate 카드 + exchangeRateValue 동시 세팅
     fetch(contextPath + '/exchange/latest.do')
         .then(function(res) { return res.json(); })
         .then(function(rate) {
-            exchangeRateValue = Number(rate.rate);
             document.getElementById('navExchangeRate').innerText =
-                exchangeRateValue.toLocaleString();
+                Number(rate.rate).toLocaleString();
             document.getElementById('exchangeRate').innerText =
-                exchangeRateValue.toLocaleString();
-            updateUsdConverted();
+                Number(rate.rate).toLocaleString();
         });
 }
 
@@ -268,11 +264,10 @@ function loadEtfInfo(symbol) {
             document.getElementById('symbolBadge').innerText = symbol;
             document.getElementById('price').innerText = '$' + info.price;
             document.getElementById('divYield').innerText = info.divYield + '%';
-            document.getElementById('afterTaxYield').innerText =
-                (info.divYield * (1 - 0.154)).toFixed(2) + '%';
+            // Java에서 받아온 세후 배당률 사용
+            document.getElementById('afterTaxYield').innerText = info.afterTaxYield + '%';
 
             currentDivYield = info.divYield;
-            updateUsdConverted();
         })
         .catch(function() {
             alert('해당 티커를 찾을 수 없습니다: ' + symbol);
@@ -281,7 +276,6 @@ function loadEtfInfo(symbol) {
 
 document.getElementById('initialAmount').addEventListener('input', function() {
     this.value = formatNumber(this.value);
-    updateUsdConverted();
 });
 
 document.getElementById('monthlyAmount').addEventListener('input', function() {
@@ -300,7 +294,6 @@ document.querySelectorAll('input[name="investType"]').forEach(function(radio) {
         } else {
             initialAmountInput.disabled = false;
         }
-        updateUsdConverted();
     });
 });
 
@@ -314,14 +307,6 @@ document.querySelectorAll('.period-btn').forEach(function(btn) {
     });
 });
 
-function updateUsdConverted() {
-    var krw = parseNumber(document.getElementById('initialAmount').value);
-    if (exchangeRateValue > 0) {
-        document.getElementById('usdConverted').innerText =
-            '≈ $' + (krw / exchangeRateValue).toFixed(2) + ' USD';
-    }
-}
-
 document.getElementById('simulateBtn').addEventListener('click', simulate);
 
 function simulate() {
@@ -329,15 +314,12 @@ function simulate() {
 
     var initialAmountKrw = parseNumber(document.getElementById('initialAmount').value);
     var monthlyAmountKrw = parseNumber(document.getElementById('monthlyAmount').value);
-    var isMonthlyInvest = document.getElementById('monthly').checked;
+    var isMonthlyInvest  = document.getElementById('monthly').checked;
 
-    var initialAmountUsd = (initialAmountKrw / exchangeRateValue).toFixed(2);
-    var monthlyAmountUsd = isMonthlyInvest
-        ? (monthlyAmountKrw / exchangeRateValue).toFixed(2) : 0;
-
+    // KRW 그대로 서버로 전송 → Java에서 USD 환산
     var url = contextPath + '/etf/' + currentSymbol + '/simulate.do'
-        + '?initialAmount=' + initialAmountUsd
-        + '&monthlyAmount=' + monthlyAmountUsd
+        + '?initialAmount=' + initialAmountKrw
+        + '&monthlyAmount=' + monthlyAmountKrw
         + '&months=' + selectedMonths
         + '&isMonthlyInvest=' + isMonthlyInvest;
 
@@ -347,18 +329,22 @@ function simulate() {
 }
 
 function renderResult(r) {
-    var totalInvestKrw   = Math.round(r.totalInvest   * exchangeRateValue);
-    var totalDividendKrw = Math.round(r.totalDividend * exchangeRateValue);
-    var finalAssetsKrw   = Math.round(r.finalAssets   * exchangeRateValue);
-
-    document.getElementById('totalInvestKrw').innerText = totalInvestKrw.toLocaleString() + ' 원';
-    document.getElementById('totalInvestUsd').innerText = '(약 $' + Number(r.totalInvest).toFixed(2) + ')';
-    document.getElementById('totalDividendKrw').innerText = totalDividendKrw.toLocaleString() + ' 원';
-    document.getElementById('totalDividendUsd').innerText = '(약 $' + Number(r.totalDividend).toFixed(2) + ')';
-    document.getElementById('finalAssetsKrw').innerText = finalAssetsKrw.toLocaleString() + ' 원';
-    document.getElementById('finalAssetsUsd').innerText = '(약 $' + Number(r.finalAssets).toFixed(2) + ')';
+    // Java에서 계산된 원화 값 사용
+    document.getElementById('totalInvestKrw').innerText =
+        Number(r.totalInvestKrw).toLocaleString() + ' 원';
+    document.getElementById('totalInvestUsd').innerText =
+        '(약 $' + Number(r.totalInvest).toFixed(2) + ')';
+    document.getElementById('totalDividendKrw').innerText =
+        Number(r.totalDividendKrw).toLocaleString() + ' 원';
+    document.getElementById('totalDividendUsd').innerText =
+        '(약 $' + Number(r.totalDividend).toFixed(2) + ')';
+    document.getElementById('finalAssetsKrw').innerText =
+        Number(r.finalAssetsKrw).toLocaleString() + ' 원';
+    document.getElementById('finalAssetsUsd').innerText =
+        '(약 $' + Number(r.finalAssets).toFixed(2) + ')';
     document.getElementById('returnRate').innerText = r.returnRate + '%';
-    document.getElementById('returnKrw').innerText = '순수익 ' + totalDividendKrw.toLocaleString() + '원';
+    document.getElementById('returnKrw').innerText =
+        '순수익 ' + Number(r.totalDividendKrw).toLocaleString() + '원';
 
     lastSimResult = r;
 }
@@ -372,7 +358,6 @@ document.getElementById('resetBtn').addEventListener('click', function() {
     selectedMonths = 60;
     document.querySelectorAll('.period-btn').forEach(function(b) { b.classList.remove('active'); });
     document.querySelector('.period-btn[data-months="60"]').classList.add('active');
-    updateUsdConverted();
 
     document.getElementById('totalInvestKrw').innerText  = '-';
     document.getElementById('totalInvestUsd').innerText  = '';
@@ -393,14 +378,12 @@ document.getElementById('saveBtn').addEventListener('click', function() {
     var isMonthlyInvest  = document.getElementById('monthly').checked;
     var initialAmountKrw = parseNumber(document.getElementById('initialAmount').value);
     var monthlyAmountKrw = parseNumber(document.getElementById('monthlyAmount').value);
-    var initialAmtUsd    = (initialAmountKrw / exchangeRateValue).toFixed(2);
-    var monthlyAmtUsd    = isMonthlyInvest
-        ? (monthlyAmountKrw / exchangeRateValue).toFixed(2) : 0;
 
     var params = new URLSearchParams();
     params.append('investType',  isMonthlyInvest ? 'monthly' : 'lumpsum');
-    params.append('initialAmt',  initialAmtUsd);
-    params.append('monthlyAmt',  monthlyAmtUsd);
+    params.append('initialAmt',  lastSimResult.totalInvest);
+    params.append('monthlyAmt',  isMonthlyInvest
+        ? (monthlyAmountKrw / initialAmountKrw).toFixed(2) : 0);
     params.append('months',      selectedMonths);
     params.append('divYield',    currentDivYield);
     params.append('totalDiv',    lastSimResult.totalDividend);
