@@ -313,25 +313,3 @@ mvn clean package
 
 ---
 
-## 핵심 구현 포인트
-
-- BigDecimal 정밀 계산: 세후 15.4% 배당소득세·DRIP 복리를 MathContext(20)으로 부동소수점 오차 없이 처리
-- FastAPI fallback: FastAPI 장애시 eGovFrame이 MyBatis로 DB를 직접 조회하여 무중단 서비스 유지
-- 증분 업서트: 모든 적재 스크립트에 ON DUPLICATE KEY UPDATE 적용으로 중복 없는 안전한 갱신
-- N+1 쿼리 개선: 포트폴리오 목록을 portfolio LEFT JOIN etf_info 1회 쿼리로 최적화
-- API Rate Limit 대응: Polygon.io Free tier (5 req/min) 맞춰 호출 간 12~13초 대기
-- 환율 영업일 자동 탐색: 수출입은행 API 최근 10일 역순 탐색으로 공휴일·주말 자동 처리
-- camelCase 변환: FastAPI 응답 키를 Java VO 필드명과 일치시켜 RestTemplate 자동 역직렬화
-- 환율 오차 방지: KRW -> USD 환산 후 역산 시 발생하는 원화 오차를 컨트롤러에서 원본 KRW 값으로 직접 보정
-- 티커 자동완성: 4개 화면 공통으로 실시간 필터링 드롭다운 적용 (방향키·Enter·ESC 키보드 지원)
-- AI 생성 ETF 설명: 100개 ETF 한국어 설명을 CSV로 사전 생성 후 etf_info.description에 일괄 적재
-
----
-
-## 기대 효과
-
-- 실제 ETF 데이터 기반으로 배당 투자 흐름 직접 확인
-- DRIP 복리 효과 체감: 배당금 재투자시 장기 자산 증가폭 시각화
-- 세후 실질 수익 파악: 15.4% 배당소득세 및 실시간 환율 반영 후 실 수령액 제시
-- 2-tier 아키텍처 경험: FastAPI(데이터 수집·적재)와 eGovFrame(화면 서비스) 역할 분리 구현
-- RestTemplate 서비스 연계: eGovFrame에서 FastAPI REST API를 호출하는 서비스 간 연계 및 fallback 처리 경험
