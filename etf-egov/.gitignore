@@ -1,0 +1,39 @@
+# Python
+__pycache__/
+*.py[cod]
+*.pyo
+.venv/
+venv/
+*.egg-info/
+dist/
+build/
+.env
+__init__
+.python-version
+
+# CSV 데이터
+*.csv
+
+# 로그
+*.log
+fastapi/logs/
+
+# Java / Maven
+target/
+bin/
+*.class
+*.jar
+*.war
+*.ear
+*.zip
+
+# Eclipse / eGovFrame
+.classpath
+.project
+.settings/
+.factorypath
+*.launch
+.metadata/
+generated/
+etf-egov/bin/
+etf-egov/
