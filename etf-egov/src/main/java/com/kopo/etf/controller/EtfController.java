@@ -17,8 +17,10 @@ import org.springframework.web.bind.annotation.ResponseBody;
 import org.springframework.web.client.RestTemplate;
 
 import com.kopo.etf.service.EtfInfoService;
+import com.kopo.etf.service.ExchangeRateService;
 import com.kopo.etf.vo.EtfDividendVO;
 import com.kopo.etf.vo.EtfInfoVO;
+import com.kopo.etf.vo.ExchangeRateVO;
 
 @Controller
 public class EtfController {
@@ -26,7 +28,9 @@ public class EtfController {
     @Resource(name = "etfInfoService")
     private EtfInfoService etfInfoService;
 
-    // globals.properties에서 FastAPI URL 주입
+    @Resource(name = "exchangeRateService")
+    private ExchangeRateService exchangeRateService;
+
     @Value("${fastapi.base.url}")
     private String fastapiBaseUrl;
 
@@ -40,8 +44,11 @@ public class EtfController {
     public Map<String, Object> detail(@PathVariable("symbol") String symbol) {
         Map<String, Object> result = new HashMap<>();
 
+        // 환율 조회
+        ExchangeRateVO rateVO = exchangeRateService.getLatestRate();
+        BigDecimal exchangeRate = rateVO != null ? rateVO.getRate() : new BigDecimal("1400");
+
         try {
-            // FastAPI 호출
             RestTemplate rt = new RestTemplate();
 
             // ETF 기본정보 (FastAPI)
@@ -59,17 +66,21 @@ public class EtfController {
                     .setScale(2, RoundingMode.HALF_UP);
                 info.setAfterTaxYield(afterTax);
             }
+
+            // 한화 금액 계산 (Java에서 처리)
+            calcKrwAmount(dividends, exchangeRate);
+
             result.put("info", info);
             result.put("dividends", dividends != null ? List.of(dividends) : List.of());
             result.put("source", "FastAPI");
 
         } catch (Exception e) {
-            // 에러 내용 출력 (원인 파악용)
             System.out.println("FastAPI 호출 실패: " + e.getMessage());
             e.printStackTrace();
-            // FastAPI 호출 실패 시 DB에서 직접 조회 (fallback)
+
             EtfInfoVO info = etfInfoService.getEtfInfo(symbol);
             List<EtfDividendVO> dividends = etfInfoService.getRecentDividends(symbol);
+
             // afterTaxYield 계산 (Java에서 처리)
             if (info.getDivYield() != null) {
                 BigDecimal afterTax = info.getDivYield()
@@ -77,6 +88,10 @@ public class EtfController {
                     .setScale(2, RoundingMode.HALF_UP);
                 info.setAfterTaxYield(afterTax);
             }
+
+            // 한화 금액 계산 (Java에서 처리)
+            calcKrwAmount(dividends.toArray(new EtfDividendVO[0]), exchangeRate);
+
             result.put("info", info);
             result.put("dividends", dividends);
             result.put("source", "DB-fallback");
@@ -90,5 +105,17 @@ public class EtfController {
     @ResponseBody
     public List<EtfInfoVO> symbols() {
         return etfInfoService.getAllEtfList();
+    }
+
+    /** 배당내역 한화 금액 계산 */
+    private void calcKrwAmount(EtfDividendVO[] dividends, BigDecimal rate) {
+        if (dividends == null || rate == null) return;
+        for (EtfDividendVO d : dividends) {
+            if (d.getCashAmount() != null) {
+                d.setKrwAmount(d.getCashAmount()
+                    .multiply(rate)
+                    .setScale(0, RoundingMode.HALF_UP));
+            }
+        }
     }
 }

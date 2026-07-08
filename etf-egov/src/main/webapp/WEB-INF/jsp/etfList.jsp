@@ -175,9 +175,7 @@ body { background-color: #f8f9fa; }
 <script>
 var contextPath = '<%=request.getContextPath()%>';
 var currentSymbol = '';
-var exchangeRateValue = 0;
 
-// 환율 업데이트 버튼
 function updateExchangeRate() {
     var btn = document.getElementById('navRateUpdateBtn');
     btn.disabled = true;
@@ -188,7 +186,6 @@ function updateExchangeRate() {
             if (d.status === 'ok') {
                 document.getElementById('navExchangeRate').innerText =
                     Number(d.rate).toLocaleString();
-                exchangeRateValue = Number(d.rate);
                 btn.innerText = '✅';
             } else {
                 btn.innerText = '❌';
@@ -201,13 +198,11 @@ function updateExchangeRate() {
 }
 
 window.addEventListener('DOMContentLoaded', function() {
-    // 환율 1번만 호출 — 네비바 표시 + exchangeRateValue 동시 세팅
     fetch(contextPath + '/exchange/latest.do')
         .then(function(res) { return res.json(); })
         .then(function(rate) {
-            exchangeRateValue = Number(rate.rate);
             document.getElementById('navExchangeRate').innerText =
-                exchangeRateValue.toLocaleString();
+                Number(rate.rate).toLocaleString();
         });
 
     loadSymbolList();
@@ -225,7 +220,6 @@ function loadSymbolList() {
                 select.appendChild(opt);
             });
 
-            // 드롭다운 다 채운 후 마지막 종목 복원
             var lastSymbol = sessionStorage.getItem('lastSymbol');
             if (lastSymbol) {
                 document.getElementById('searchInput').value = lastSymbol;
@@ -275,6 +269,10 @@ function searchEtf(symbol) {
         })
         .catch(function() {
             alert('해당 티커를 찾을 수 없습니다: ' + symbol);
+            document.getElementById('searchInput').value = '';
+            document.getElementById('symbolSelect').value = '';
+            document.getElementById('resultArea').style.display = 'none';
+            sessionStorage.removeItem('lastSymbol');
         });
 }
 
@@ -310,12 +308,11 @@ function renderEtf(data) {
     var tbody = document.getElementById('dividendTableBody');
     tbody.innerHTML = '';
     dividends.forEach(function(d) {
-        var krwAmount = Math.round(d.cashAmount * exchangeRateValue);
         var row = '<tr>'
             + '<td>' + d.payDate + '</td>'
             + '<td>' + d.exDivDate + '</td>'
             + '<td>$' + d.cashAmount + '</td>'
-            + '<td>≈ ' + krwAmount.toLocaleString() + '원</td>'
+            + '<td>≈ ' + Number(d.krwAmount).toLocaleString() + '원</td>'
             + '</tr>';
         tbody.innerHTML += row;
     });
