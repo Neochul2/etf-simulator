@@ -65,9 +65,21 @@ public class SimulationController {
                 : BigDecimal.ZERO;
 
         EtfInfoVO info = etfInfoService.getEtfInfo(symbol);
-        return dripCalculatorService.simulate(
+        DripResultVO result = dripCalculatorService.simulate(
                 initialAmountUsd, monthlyAmountUsd,
                 info.getDivYield(), months, isMonthlyInvest, exchangeRate);
+
+        // 실 투자금 KRW 오차 수정 (환산 오차 방지)
+        if (isMonthlyInvest) {
+            result.setTotalInvestKrw(monthlyAmountKrw
+                .multiply(new BigDecimal(months))
+                .setScale(0, RoundingMode.HALF_UP));
+        } else {
+            result.setTotalInvestKrw(initialAmountKrw
+                .setScale(0, RoundingMode.HALF_UP));
+        }
+
+        return result;
     }
 
     @PostMapping("/etf/{symbol}/simulation/save.do")

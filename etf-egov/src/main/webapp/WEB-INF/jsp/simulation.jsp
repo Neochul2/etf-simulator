@@ -43,11 +43,19 @@
     <h2 class="fw-bold">배당금 재투자 시뮬레이션</h2>
     <p class="text-muted">선택한 ETF의 배당금을 재투자할 경우 예상 자산 변화를 시뮬레이션해보세요.</p>
 
-    <div class="mb-3">
-        <label class="form-label">종목 선택</label>
-        <select class="form-select" id="symbolSelect" style="max-width: 300px;">
-            <option value="">ETF를 선택하세요</option>
-        </select>
+    <div class="row g-2 mb-4">
+        <div class="col-md-4">
+            <input type="text" id="searchInput" class="form-control"
+                placeholder="티커 입력 (예: JEPI, QQQI)">
+        </div>
+        <div class="col-auto">
+            <button class="btn btn-primary px-4" id="searchBtn">검색</button>
+        </div>
+        <div class="col-md-4">
+            <select class="form-select" id="symbolSelect">
+                <option value="">시총 상위 ETF 목록</option>
+            </select>
+        </div>
     </div>
 
     <div class="card shadow-sm mb-4">
@@ -249,10 +257,26 @@ function loadSymbolList() {
 }
 
 document.getElementById('symbolSelect').addEventListener('change', function() {
-    if (this.value) loadEtfInfo(this.value);
+    if (this.value) {
+        document.getElementById('searchInput').value = this.value;
+        loadEtfInfo(this.value);
+    }
 });
 
-//loadEtfInfo 함수 catch
+document.getElementById('searchBtn').addEventListener('click', function() {
+    var symbol = document.getElementById('searchInput').value.trim().toUpperCase();
+    if (!symbol) {
+        alert('티커를 입력해주세요.');
+        document.getElementById('searchInput').value = '';
+        return;
+    }
+    loadEtfInfo(symbol);
+});
+
+document.getElementById('searchInput').addEventListener('keydown', function(e) {
+    if (e.key === 'Enter') document.getElementById('searchBtn').click();
+});
+
 function loadEtfInfo(symbol) {
     fetch(contextPath + '/etf/' + symbol + '/detail.do')
         .then(function(res) { return res.json(); })
@@ -266,14 +290,18 @@ function loadEtfInfo(symbol) {
             document.getElementById('price').innerText = '$' + info.price;
             document.getElementById('divYield').innerText = info.divYield + '%';
             document.getElementById('afterTaxYield').innerText = info.afterTaxYield + '%';
+            document.getElementById('symbolSelect').value = symbol;
+            document.getElementById('searchInput').value = symbol;
 
             currentDivYield = info.divYield;
         })
         .catch(function() {
             alert('해당 티커를 찾을 수 없습니다: ' + symbol);
-            document.getElementById('symbolSelect').value = ''; // ← 추가
+            document.getElementById('searchInput').value = '';
+            document.getElementById('symbolSelect').value = '';
         });
 }
+
 document.getElementById('initialAmount').addEventListener('input', function() {
     this.value = formatNumber(this.value);
 });
@@ -316,7 +344,6 @@ function simulate() {
     var monthlyAmountKrw = parseNumber(document.getElementById('monthlyAmount').value);
     var isMonthlyInvest  = document.getElementById('monthly').checked;
 
-    // KRW 그대로 서버로 전송 → Java에서 USD 환산
     var url = contextPath + '/etf/' + currentSymbol + '/simulate.do'
         + '?initialAmount=' + initialAmountKrw
         + '&monthlyAmount=' + monthlyAmountKrw
@@ -329,7 +356,6 @@ function simulate() {
 }
 
 function renderResult(r) {
-    // Java에서 계산된 원화 값 사용
     document.getElementById('totalInvestKrw').innerText =
         Number(r.totalInvestKrw).toLocaleString() + ' 원';
     document.getElementById('totalInvestUsd').innerText =
@@ -376,14 +402,12 @@ document.getElementById('saveBtn').addEventListener('click', function() {
     if (!lastSimResult) { alert('시뮬레이션을 먼저 실행해주세요.'); return; }
 
     var isMonthlyInvest  = document.getElementById('monthly').checked;
-    var initialAmountKrw = parseNumber(document.getElementById('initialAmount').value);
     var monthlyAmountKrw = parseNumber(document.getElementById('monthlyAmount').value);
 
     var params = new URLSearchParams();
     params.append('investType',  isMonthlyInvest ? 'monthly' : 'lumpsum');
     params.append('initialAmt',  lastSimResult.totalInvest);
-    params.append('monthlyAmt',  isMonthlyInvest
-        ? (monthlyAmountKrw / initialAmountKrw).toFixed(2) : 0);
+    params.append('monthlyAmt',  isMonthlyInvest ? lastSimResult.totalInvest / selectedMonths : 0);
     params.append('months',      selectedMonths);
     params.append('divYield',    currentDivYield);
     params.append('totalDiv',    lastSimResult.totalDividend);
