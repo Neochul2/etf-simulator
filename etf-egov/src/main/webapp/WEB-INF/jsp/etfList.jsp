@@ -20,6 +20,15 @@ body { background-color: #f8f9fa; }
 .info-item .value { font-size: 0.95rem; font-weight: 600; }
 .desc-box { background: #f8f9fa; border-radius: 8px; border-left: 4px solid #0d6efd;
     padding: 12px 16px; margin-top: 12px; }
+.autocomplete-box {
+    position: absolute; z-index: 9999; background: #fff;
+    border: 1px solid #dee2e6; border-radius: 6px;
+    box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+    max-height: 220px; overflow-y: auto; width: 100%;
+}
+.autocomplete-item { padding: 8px 12px; cursor: pointer; font-size: 0.9rem; }
+.autocomplete-item:hover, .autocomplete-item.active { background-color: #e9f0ff; color: #0d6efd; }
+.autocomplete-wrap { position: relative; }
 </style>
 </head>
 <body>
@@ -50,9 +59,10 @@ body { background-color: #f8f9fa; }
     <p class="text-muted">시총 상위 월배당 ETF 100개 중 하나를 검색하고 배당 정보를 확인하세요.</p>
 
     <div class="row g-2 mb-4 align-items-center">
-        <div class="col-md-4">
-            <input type="text" id="searchInput" class="form-control"
+        <div class="col-md-4 autocomplete-wrap">
+            <input type="text" id="searchInput" class="form-control" autocomplete="off"
                 placeholder="ETF명 또는 티커를 입력하세요 (예: QQQI, JEPI)">
+            <div class="autocomplete-box" id="autocompleteBox" style="display:none;"></div>
         </div>
         <div class="col-md-2">
             <button class="btn btn-primary w-100" id="searchBtn">검색</button>
@@ -63,17 +73,14 @@ body { background-color: #f8f9fa; }
             </select>
         </div>
         <div class="col-md-3 text-end">
-            <small class="text-muted" id="updatedAt">데이터 기준 시간 조회 전</small>
-            <br>
+            <small class="text-muted" id="updatedAt">데이터 기준 시간 조회 전</small><br>
             <small class="text-muted">📌 출처: Polygon.io</small>
         </div>
     </div>
 
     <div id="resultArea" style="display: none;">
-
         <div class="card shadow-sm mb-4">
             <div class="card-body">
-
                 <div class="d-flex align-items-center mb-4">
                     <div class="logo-box me-3" id="logoBox">--</div>
                     <div>
@@ -84,7 +91,6 @@ body { background-color: #f8f9fa; }
                         <span class="badge bg-light text-dark">USD</span>
                     </div>
                 </div>
-
                 <div class="row text-center g-3 mb-3">
                     <div class="col-md-3">
                         <div class="card-info">
@@ -111,7 +117,6 @@ body { background-color: #f8f9fa; }
                         </div>
                     </div>
                 </div>
-
                 <div class="row text-center g-2 info-row">
                     <div class="col-3">
                         <div class="info-item">
@@ -138,14 +143,12 @@ body { background-color: #f8f9fa; }
                         </div>
                     </div>
                 </div>
-
                 <div class="desc-box">
                     <small class="text-muted" id="etfDescription" style="line-height:1.6;"></small>
                     <small class="text-muted d-block mt-1" style="font-size:0.7rem;">
                         ※ AI 생성 설명입니다. 투자 참고용으로만 활용하세요.
                     </small>
                 </div>
-
             </div>
         </div>
 
@@ -165,7 +168,6 @@ body { background-color: #f8f9fa; }
                 </table>
             </div>
         </div>
-
     </div>
 
 </div>
@@ -175,6 +177,7 @@ body { background-color: #f8f9fa; }
 <script>
 var contextPath = '<%=request.getContextPath()%>';
 var currentSymbol = '';
+var symbolList = [];
 
 function updateExchangeRate() {
     var btn = document.getElementById('navRateUpdateBtn');
@@ -184,16 +187,10 @@ function updateExchangeRate() {
         .then(function(r) { return r.json(); })
         .then(function(d) {
             if (d.status === 'ok') {
-                document.getElementById('navExchangeRate').innerText =
-                    Number(d.rate).toLocaleString();
+                document.getElementById('navExchangeRate').innerText = Number(d.rate).toLocaleString();
                 btn.innerText = '✅';
-            } else {
-                btn.innerText = '❌';
-            }
-            setTimeout(function() {
-                btn.disabled = false;
-                btn.innerText = '🔄';
-            }, 2000);
+            } else { btn.innerText = '❌'; }
+            setTimeout(function() { btn.disabled = false; btn.innerText = '🔄'; }, 2000);
         });
 }
 
@@ -201,17 +198,16 @@ window.addEventListener('DOMContentLoaded', function() {
     fetch(contextPath + '/exchange/latest.do')
         .then(function(res) { return res.json(); })
         .then(function(rate) {
-            document.getElementById('navExchangeRate').innerText =
-                Number(rate.rate).toLocaleString();
+            document.getElementById('navExchangeRate').innerText = Number(rate.rate).toLocaleString();
         });
-
     loadSymbolList();
 });
 
 function loadSymbolList() {
-    return fetch(contextPath + '/etf/symbols.do')
+    fetch(contextPath + '/etf/symbols.do')
         .then(function(res) { return res.json(); })
         .then(function(list) {
+            symbolList = list;
             var select = document.getElementById('symbolSelect');
             list.forEach(function(item) {
                 var opt = document.createElement('option');
@@ -219,7 +215,6 @@ function loadSymbolList() {
                 opt.text = item.symbol + ' (배당률 ' + item.divYield + '%)';
                 select.appendChild(opt);
             });
-
             var lastSymbol = sessionStorage.getItem('lastSymbol');
             if (lastSymbol) {
                 document.getElementById('searchInput').value = lastSymbol;
@@ -229,44 +224,83 @@ function loadSymbolList() {
         });
 }
 
+// 자동완성
+document.getElementById('searchInput').addEventListener('input', function() {
+    var val = this.value.trim().toUpperCase();
+    var box = document.getElementById('autocompleteBox');
+    document.getElementById('symbolSelect').value = val;
+    if (!val) { box.style.display = 'none'; return; }
+    var filtered = symbolList.filter(function(item) {
+        return item.symbol.toUpperCase().indexOf(val) === 0;
+    });
+    if (filtered.length === 0) { box.style.display = 'none'; return; }
+    box.innerHTML = '';
+    filtered.slice(0, 8).forEach(function(item) {
+        var div = document.createElement('div');
+        div.className = 'autocomplete-item';
+        div.innerHTML = '<strong>' + item.symbol + '</strong> <span class="text-muted" style="font-size:0.8rem;">' + item.divYield + '%</span>';
+        div.addEventListener('click', function() {
+            document.getElementById('searchInput').value = item.symbol;
+            document.getElementById('symbolSelect').value = item.symbol;
+            box.style.display = 'none';
+            searchEtf(item.symbol);
+        });
+        box.appendChild(div);
+    });
+    box.style.display = 'block';
+});
+
+document.getElementById('searchInput').addEventListener('keydown', function(e) {
+    var box = document.getElementById('autocompleteBox');
+    var items = box.querySelectorAll('.autocomplete-item');
+    var active = box.querySelector('.autocomplete-item.active');
+    var idx = -1;
+    items.forEach(function(item, i) { if (item === active) idx = i; });
+    if (e.key === 'ArrowDown') {
+        e.preventDefault();
+        if (idx < items.length - 1) { if (active) active.classList.remove('active'); items[idx+1].classList.add('active'); }
+    } else if (e.key === 'ArrowUp') {
+        e.preventDefault();
+        if (idx > 0) { if (active) active.classList.remove('active'); items[idx-1].classList.add('active'); }
+    } else if (e.key === 'Enter') {
+        if (active) { active.click(); }
+        else { runSearch(); }
+    } else if (e.key === 'Escape') {
+        box.style.display = 'none';
+    }
+});
+
+document.addEventListener('click', function(e) {
+    var box = document.getElementById('autocompleteBox');
+    var input = document.getElementById('searchInput');
+    if (box && !box.contains(e.target) && e.target !== input) box.style.display = 'none';
+});
+
 document.getElementById('symbolSelect').addEventListener('change', function() {
     if (this.value) {
         document.getElementById('searchInput').value = this.value;
+        document.getElementById('autocompleteBox').style.display = 'none';
         searchEtf(this.value);
     }
 });
 
-document.getElementById('searchBtn').addEventListener('click', function() {
-    runSearch();
-});
-
-document.getElementById('searchInput').addEventListener('keypress', function(e) {
-    if (e.key === 'Enter') { runSearch(); }
-});
+document.getElementById('searchBtn').addEventListener('click', function() { runSearch(); });
 
 function runSearch() {
     var symbol = document.getElementById('searchInput').value.trim().toUpperCase();
-    if (symbol) { searchEtf(symbol); }
+    if (symbol) searchEtf(symbol);
 }
 
 function searchEtf(symbol) {
     sessionStorage.setItem('lastSymbol', symbol);
-
     document.getElementById('resultArea').style.display = 'block';
     document.getElementById('logoBox').innerText = '...';
     document.getElementById('etfName').innerText = '조회 중...';
     document.getElementById('price').innerText = '-';
     document.getElementById('divYield').innerText = '-';
-
     fetch(contextPath + '/etf/' + symbol + '/detail.do')
-        .then(function(res) {
-            if (!res.ok) throw new Error('조회 실패');
-            return res.json();
-        })
-        .then(function(data) {
-            currentSymbol = symbol;
-            renderEtf(data);
-        })
+        .then(function(res) { if (!res.ok) throw new Error(); return res.json(); })
+        .then(function(data) { currentSymbol = symbol; renderEtf(data); })
         .catch(function() {
             alert('해당 티커를 찾을 수 없습니다: ' + symbol);
             document.getElementById('searchInput').value = '';
@@ -279,42 +313,28 @@ function searchEtf(symbol) {
 function renderEtf(data) {
     var info = data.info;
     var dividends = data.dividends;
-
-    document.getElementById('resultArea').style.display = 'block';
     document.getElementById('logoBox').innerText = info.symbol;
     document.getElementById('symbolBadge').innerText = info.symbol;
     document.getElementById('etfName').innerText = info.symbol;
     document.getElementById('updatedAt').innerText = 'Polygon.io 기준 · ' + info.updatedAt + ' 업데이트';
-
     document.getElementById('searchInput').value = info.symbol;
     document.getElementById('symbolSelect').value = info.symbol;
-
     document.getElementById('price').innerText = '$' + info.price;
     document.getElementById('divYield').innerText = info.divYield + '%';
     document.getElementById('issuerName').innerText = info.issuer || '';
-
     document.getElementById('openPrice').innerText = '$' + (info.openPrice || '-');
     document.getElementById('highPrice').innerText = '$' + (info.highPrice || '-');
     document.getElementById('lowPrice').innerText  = '$' + (info.lowPrice  || '-');
     document.getElementById('volume').innerText    = info.volume ? Number(info.volume).toLocaleString() : '-';
-
     document.getElementById('etfDescription').innerText = info.description || '';
-
     if (dividends.length > 0) {
         document.getElementById('exDivDate').innerText = dividends[0].exDivDate;
         document.getElementById('payDate').innerText   = dividends[0].payDate;
     }
-
     var tbody = document.getElementById('dividendTableBody');
     tbody.innerHTML = '';
     dividends.forEach(function(d) {
-        var row = '<tr>'
-            + '<td>' + d.payDate + '</td>'
-            + '<td>' + d.exDivDate + '</td>'
-            + '<td>$' + d.cashAmount + '</td>'
-            + '<td>≈ ' + Number(d.krwAmount).toLocaleString() + '원</td>'
-            + '</tr>';
-        tbody.innerHTML += row;
+        tbody.innerHTML += '<tr><td>' + d.payDate + '</td><td>' + d.exDivDate + '</td><td>$' + d.cashAmount + '</td><td>≈ ' + Number(d.krwAmount).toLocaleString() + '원</td></tr>';
     });
 }
 </script>

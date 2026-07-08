@@ -16,6 +16,15 @@ body { background-color: #f8f9fa; }
 .summary-card .value { font-size: 1.3rem; font-weight: 700; }
 .amt-edit-btn { font-size: 0.75rem; text-decoration: none; }
 .amt-input { max-width: 160px; display: inline-block; }
+.autocomplete-box {
+    position: absolute; z-index: 9999; background: #fff;
+    border: 1px solid #dee2e6; border-radius: 6px;
+    box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+    max-height: 220px; overflow-y: auto; width: 100%;
+}
+.autocomplete-item { padding: 8px 12px; cursor: pointer; font-size: 0.9rem; }
+.autocomplete-item:hover, .autocomplete-item.active { background-color: #e9f0ff; color: #0d6efd; }
+.autocomplete-wrap { position: relative; }
 </style>
 </head>
 <body>
@@ -50,11 +59,18 @@ body { background-color: #f8f9fa; }
         <div class="card-body">
             <h6 class="fw-bold mb-3">➕ 종목 추가</h6>
             <div class="row g-2 align-items-end">
-                <div class="col-md-4">
-                    <label class="form-label text-muted" style="font-size:0.82rem;">ETF 종목 선택</label>
-                    <input type="text" class="form-control" id="addSymbol" placeholder="티커 입력 (예: JEPI)">
+                <div class="col-md-2 autocomplete-wrap">
+                    <label class="form-label text-muted" style="font-size:0.82rem;">티커 직접 입력</label>
+                    <input type="text" class="form-control" id="addSymbol" autocomplete="off" placeholder="예: JEPI">
+                    <div class="autocomplete-box" id="autocompleteBox" style="display:none;"></div>
                 </div>
-                <div class="col-md-4">
+                <div class="col-md-3">
+                    <label class="form-label text-muted" style="font-size:0.82rem;">시총 상위 ETF 목록</label>
+                    <select class="form-select" id="symbolSelect">
+                        <option value="">목록에서 선택</option>
+                    </select>
+                </div>
+                <div class="col-md-3">
                     <label class="form-label text-muted" style="font-size:0.82rem;">투자금액 (원화)</label>
                     <input type="text" class="form-control" id="addInvestAmt" placeholder="예: 5,000,000">
                 </div>
@@ -123,6 +139,7 @@ body { background-color: #f8f9fa; }
 <script>
 var CTX = '<%=request.getContextPath()%>';
 var exchangeRateValue = 0;
+var symbolList = [];
 
 function formatNumber(val) {
     var num = val.toString().replace(/,/g, '').replace(/[^0-9]/g, '');
@@ -131,12 +148,8 @@ function formatNumber(val) {
 function parseNumber(val) {
     return parseFloat(val.toString().replace(/,/g, '')) || 0;
 }
-function numFmt(n) {
-    return Math.round(Number(n)).toLocaleString();
-}
-function usdFmt(n) {
-    return Number(n).toFixed(2);
-}
+function numFmt(n) { return Math.round(Number(n)).toLocaleString(); }
+function usdFmt(n) { return Number(n).toFixed(2); }
 
 function updateExchangeRate() {
     var btn = document.getElementById('navRateUpdateBtn');
@@ -146,17 +159,11 @@ function updateExchangeRate() {
         .then(function(r) { return r.json(); })
         .then(function(d) {
             if (d.status === 'ok') {
-                document.getElementById('navExchangeRate').innerText =
-                    Number(d.rate).toLocaleString();
+                document.getElementById('navExchangeRate').innerText = Number(d.rate).toLocaleString();
                 exchangeRateValue = Number(d.rate);
                 btn.innerText = '✅';
-            } else {
-                btn.innerText = '❌';
-            }
-            setTimeout(function() {
-                btn.disabled = false;
-                btn.innerText = '🔄';
-            }, 2000);
+            } else { btn.innerText = '❌'; }
+            setTimeout(function() { btn.disabled = false; btn.innerText = '🔄'; }, 2000);
         });
 }
 
@@ -166,10 +173,22 @@ document.addEventListener('DOMContentLoaded', function() {
         .then(function(r) { return r.json(); })
         .then(function(d) {
             exchangeRateValue = Number(d.rate);
-            document.getElementById('navExchangeRate').innerText =
-                exchangeRateValue.toLocaleString();
-            document.getElementById('exchangeRateDisp').innerText =
-                exchangeRateValue.toLocaleString();
+            document.getElementById('navExchangeRate').innerText = exchangeRateValue.toLocaleString();
+            document.getElementById('exchangeRateDisp').innerText = exchangeRateValue.toLocaleString();
+        });
+
+    // 드롭다운 + 자동완성 목록 로드
+    fetch(CTX + '/etf/symbols.do')
+        .then(function(r) { return r.json(); })
+        .then(function(list) {
+            symbolList = list;
+            var select = document.getElementById('symbolSelect');
+            list.forEach(function(item) {
+                var opt = document.createElement('option');
+                opt.value = item.symbol;
+                opt.text = item.symbol + ' (배당률 ' + item.divYield + '%)';
+                select.appendChild(opt);
+            });
         });
 
     loadPortfolioData();
@@ -178,10 +197,66 @@ document.addEventListener('DOMContentLoaded', function() {
         this.value = formatNumber(this.value);
     });
 
+    // 드롭다운 선택 시 티커 입력창 연동
+    document.getElementById('symbolSelect').addEventListener('change', function() {
+        if (this.value) {
+            document.getElementById('addSymbol').value = this.value;
+            document.getElementById('autocompleteBox').style.display = 'none';
+        }
+    });
+
     // 티커 입력 후 Enter
     document.getElementById('addSymbol').addEventListener('keydown', function(e) {
-        if (e.key === 'Enter') addPortfolio();
+        var box = document.getElementById('autocompleteBox');
+        var items = box.querySelectorAll('.autocomplete-item');
+        var active = box.querySelector('.autocomplete-item.active');
+        var idx = -1;
+        items.forEach(function(item, i) { if (item === active) idx = i; });
+        if (e.key === 'ArrowDown') {
+            e.preventDefault();
+            if (idx < items.length - 1) { if (active) active.classList.remove('active'); items[idx+1].classList.add('active'); }
+        } else if (e.key === 'ArrowUp') {
+            e.preventDefault();
+            if (idx > 0) { if (active) active.classList.remove('active'); items[idx-1].classList.add('active'); }
+        } else if (e.key === 'Enter') {
+            if (active) { active.click(); }
+            else { addPortfolio(); }
+        } else if (e.key === 'Escape') {
+            box.style.display = 'none';
+        }
     });
+});
+
+// 자동완성
+document.getElementById('addSymbol').addEventListener('input', function() {
+    var val = this.value.trim().toUpperCase();
+    var box = document.getElementById('autocompleteBox');
+    document.getElementById('symbolSelect').value = val;
+    if (!val) { box.style.display = 'none'; return; }
+    var filtered = symbolList.filter(function(item) {
+        return item.symbol.toUpperCase().indexOf(val) === 0;
+    });
+    if (filtered.length === 0) { box.style.display = 'none'; return; }
+    box.innerHTML = '';
+    filtered.slice(0, 8).forEach(function(item) {
+        var div = document.createElement('div');
+        div.className = 'autocomplete-item';
+        div.innerHTML = '<strong>' + item.symbol + '</strong> <span class="text-muted" style="font-size:0.8rem;">' + item.divYield + '%</span>';
+        div.addEventListener('click', function() {
+            document.getElementById('addSymbol').value = item.symbol;
+            document.getElementById('symbolSelect').value = item.symbol;
+            box.style.display = 'none';
+            document.getElementById('addInvestAmt').focus();
+        });
+        box.appendChild(div);
+    });
+    box.style.display = 'block';
+});
+
+document.addEventListener('click', function(e) {
+    var box = document.getElementById('autocompleteBox');
+    var input = document.getElementById('addSymbol');
+    if (box && !box.contains(e.target) && e.target !== input) box.style.display = 'none';
 });
 
 function loadPortfolioData() {
@@ -194,18 +269,12 @@ function loadPortfolioData() {
 }
 
 function renderSummary(data) {
-    document.getElementById('totalAmt').innerText =
-        numFmt(data.totalAmt) + '원';
-    document.getElementById('totalAmtUsd').innerText =
-        '$' + usdFmt(data.totalAmtUsd);
-    document.getElementById('totalMonthlyDiv').innerText =
-        numFmt(data.totalMonthlyDiv) + '원';
-    document.getElementById('totalMonthlyDivUsd').innerText =
-        '$' + usdFmt(data.totalMonthlyDivUsd);
-    document.getElementById('totalYearlyDiv').innerText =
-        numFmt(data.totalYearlyDiv) + '원';
-    document.getElementById('portfolioCount').innerText =
-        data.portfolioList.length + '개';
+    document.getElementById('totalAmt').innerText = numFmt(data.totalAmt) + '원';
+    document.getElementById('totalAmtUsd').innerText = '$' + usdFmt(data.totalAmtUsd);
+    document.getElementById('totalMonthlyDiv').innerText = numFmt(data.totalMonthlyDiv) + '원';
+    document.getElementById('totalMonthlyDivUsd').innerText = '$' + usdFmt(data.totalMonthlyDivUsd);
+    document.getElementById('totalYearlyDiv').innerText = numFmt(data.totalYearlyDiv) + '원';
+    document.getElementById('portfolioCount').innerText = data.portfolioList.length + '개';
 }
 
 function renderTable(list) {
@@ -214,13 +283,11 @@ function renderTable(list) {
         area.innerHTML = '<p class="text-muted text-center py-4">아직 추가된 종목이 없습니다. 위에서 종목을 추가해주세요.</p>';
         return;
     }
-
     var html = '<div class="table-responsive"><table class="table table-hover align-middle">'
         + '<thead class="table-light"><tr>'
         + '<th>종목</th><th>ETF명</th><th>배당률</th><th>투자금액</th>'
         + '<th>세후 월배당금</th><th>세후 연배당금</th><th>삭제</th>'
         + '</tr></thead><tbody>';
-
     list.forEach(function(p) {
         html += '<tr>'
             + '<td><span class="badge bg-primary">' + p.symbol + '</span></td>'
@@ -248,7 +315,6 @@ function renderTable(list) {
             + '<td><button class="btn btn-sm btn-outline-danger" onclick="deletePortfolio(' + p.id + ')">삭제</button></td>'
             + '</tr>';
     });
-
     html += '</tbody></table></div>';
     area.innerHTML = html;
 }
@@ -256,60 +322,37 @@ function renderTable(list) {
 function addPortfolio() {
     var symbol    = document.getElementById('addSymbol').value.trim().toUpperCase();
     var investAmt = parseNumber(document.getElementById('addInvestAmt').value);
-
-    if (!symbol) {
-        alert('종목을 입력해주세요.');
-        document.getElementById('addSymbol').value = '';
-        return;
-    }
-    if (!investAmt) {
-        alert('투자금액을 입력해주세요.');
-        document.getElementById('addInvestAmt').value = '';
-        return;
-    }
-
+    if (!symbol) { alert('종목을 입력해주세요.'); document.getElementById('addSymbol').value = ''; return; }
+    if (!investAmt) { alert('투자금액을 입력해주세요.'); document.getElementById('addInvestAmt').value = ''; return; }
     var btn = document.getElementById('addBtn');
     btn.disabled = true;
     btn.innerText = '추가 중...';
-
     var params = new URLSearchParams();
     params.append('symbol',    symbol);
     params.append('investAmt', investAmt);
-
     fetch(CTX + '/etf/portfolio/add.do', { method: 'POST', body: params })
         .then(function(r) { return r.text(); })
-        .then(function(result) {
+        .then(function() {
             document.getElementById('addSymbol').value = '';
             document.getElementById('addInvestAmt').value = '';
+            document.getElementById('symbolSelect').value = '';
             loadPortfolioData();
         })
-        .catch(function() {
-            loadPortfolioData();
-        })
-        .finally(function() {
-            btn.disabled = false;
-            btn.innerText = '추가';
-        });
+        .catch(function() { loadPortfolioData(); })
+        .finally(function() { btn.disabled = false; btn.innerText = '추가'; });
 }
 
 function deletePortfolio(id) {
     if (!confirm('이 종목을 삭제하시겠습니까?')) return;
-
     var params = new URLSearchParams();
     params.append('id', id);
-
     var btn = event.target;
     btn.disabled = true;
     btn.innerText = '삭제 중...';
-
     fetch(CTX + '/etf/portfolio/delete.do', { method: 'POST', body: params })
         .then(function(r) { return r.text(); })
-        .then(function(result) {
-            loadPortfolioData();
-        })
-        .catch(function() {
-            loadPortfolioData();
-        });
+        .then(function() { loadPortfolioData(); })
+        .catch(function() { loadPortfolioData(); });
 }
 
 document.addEventListener('input', function(e) {
@@ -324,40 +367,26 @@ document.addEventListener('click', function(e) {
         td.querySelector('.amt-display').style.display = 'none';
         td.querySelector('.amt-edit').style.display = 'block';
     }
-
     if (e.target.classList.contains('amt-cancel-btn')) {
         var td = e.target.closest('.invest-amt-cell');
         td.querySelector('.amt-display').style.display = '';
         td.querySelector('.amt-edit').style.display = 'none';
     }
-
     if (e.target.classList.contains('amt-save-btn')) {
         var td = e.target.closest('.invest-amt-cell');
         var id = td.dataset.id;
         var newAmt = parseNumber(td.querySelector('.amt-input').value);
-
-        if (!newAmt || newAmt <= 0) {
-            alert('올바른 금액을 입력해주세요.');
-            td.querySelector('.amt-input').value = '';
-            return;
-        }
-
+        if (!newAmt || newAmt <= 0) { alert('올바른 금액을 입력해주세요.'); td.querySelector('.amt-input').value = ''; return; }
         var saveBtn = e.target;
         saveBtn.disabled = true;
         saveBtn.innerText = '저장 중...';
-
         var params = new URLSearchParams();
         params.append('id', id);
         params.append('investAmt', newAmt);
-
         fetch(CTX + '/etf/portfolio/update.do', { method: 'POST', body: params })
             .then(function(r) { return r.text(); })
-            .then(function(result) {
-                loadPortfolioData();
-            })
-            .catch(function() {
-                loadPortfolioData();
-            });
+            .then(function() { loadPortfolioData(); })
+            .catch(function() { loadPortfolioData(); });
     }
 });
 </script>

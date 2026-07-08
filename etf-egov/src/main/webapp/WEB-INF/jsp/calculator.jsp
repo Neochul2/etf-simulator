@@ -14,6 +14,15 @@ body { background-color: #f8f9fa; }
     display: flex; align-items: center; justify-content: center;
     font-weight: bold; border-radius: 10px; }
 .result-card { background: #fff; border-radius: 8px; padding: 14px; text-align: center; }
+.autocomplete-box {
+    position: absolute; z-index: 9999; background: #fff;
+    border: 1px solid #dee2e6; border-radius: 6px;
+    box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+    max-height: 220px; overflow-y: auto; width: 100%;
+}
+.autocomplete-item { padding: 8px 12px; cursor: pointer; font-size: 0.9rem; }
+.autocomplete-item:hover, .autocomplete-item.active { background-color: #e9f0ff; color: #0d6efd; }
+.autocomplete-wrap { position: relative; }
 </style>
 </head>
 <body>
@@ -44,8 +53,10 @@ body { background-color: #f8f9fa; }
     <p class="text-muted">선택한 ETF의 월배당금 및 연배당금을 계산해보세요.</p>
 
     <div class="row g-2 mb-4">
-        <div class="col-md-4">
-            <input type="text" id="searchInput" class="form-control" placeholder="티커 입력 (예: JEPI)">
+        <div class="col-md-4 autocomplete-wrap">
+            <input type="text" id="searchInput" class="form-control" autocomplete="off"
+                placeholder="티커 입력 (예: JEPI)">
+            <div class="autocomplete-box" id="autocompleteBox" style="display:none;"></div>
         </div>
         <div class="col-auto">
             <button class="btn btn-primary px-4" id="searchBtn">검색</button>
@@ -69,14 +80,12 @@ body { background-color: #f8f9fa; }
 
     <div class="row g-4">
         <div class="col-md-6">
-
             <div class="card shadow-sm mb-3">
                 <div class="card-body">
                     <h6 class="text-muted mb-2">1. 현재 환율 (1일 1회 업데이트)</h6>
                     <div class="fs-3 fw-bold" id="exchangeRate">조회 중...</div>
                 </div>
             </div>
-
             <div class="card shadow-sm mb-3">
                 <div class="card-body">
                     <h6 class="text-muted mb-2">2. 투자 정보 입력</h6>
@@ -86,7 +95,6 @@ body { background-color: #f8f9fa; }
                     <button class="btn btn-primary w-100 py-2 mt-3" id="calculateBtn">🧮 계산하기</button>
                 </div>
             </div>
-
             <div class="alert alert-light border small">
                 ℹ️ 안내<br>
                 · 환율은 1일 1회 업데이트됩니다.<br>
@@ -95,7 +103,6 @@ body { background-color: #f8f9fa; }
         </div>
 
         <div class="col-md-6">
-
             <div class="card shadow-sm mb-3">
                 <div class="card-body">
                     <h6 class="text-muted mb-3">3. 배당률 및 세금 정보</h6>
@@ -115,7 +122,6 @@ body { background-color: #f8f9fa; }
                     </div>
                 </div>
             </div>
-
             <div class="card shadow-sm mb-3">
                 <div class="card-body">
                     <h6 class="text-muted mb-3">4. 계산 결과 (연 기준)</h6>
@@ -151,7 +157,6 @@ body { background-color: #f8f9fa; }
                     </div>
                 </div>
             </div>
-
         </div>
     </div>
 
@@ -169,6 +174,7 @@ body { background-color: #f8f9fa; }
 var contextPath = '<%=request.getContextPath()%>';
 var currentSymbol = '';
 var exchangeRateValue = 0;
+var symbolList = [];
 
 function updateExchangeRate() {
     var btn = document.getElementById('navRateUpdateBtn');
@@ -178,19 +184,12 @@ function updateExchangeRate() {
         .then(function(r) { return r.json(); })
         .then(function(d) {
             if (d.status === 'ok') {
-                document.getElementById('navExchangeRate').innerText =
-                    Number(d.rate).toLocaleString();
+                document.getElementById('navExchangeRate').innerText = Number(d.rate).toLocaleString();
                 exchangeRateValue = Number(d.rate);
-                document.getElementById('exchangeRate').innerText =
-                    exchangeRateValue.toLocaleString() + ' KRW / USD';
+                document.getElementById('exchangeRate').innerText = exchangeRateValue.toLocaleString() + ' KRW / USD';
                 btn.innerText = '✅';
-            } else {
-                btn.innerText = '❌';
-            }
-            setTimeout(function() {
-                btn.disabled = false;
-                btn.innerText = '🔄';
-            }, 2000);
+            } else { btn.innerText = '❌'; }
+            setTimeout(function() { btn.disabled = false; btn.innerText = '🔄'; }, 2000);
         });
 }
 
@@ -204,10 +203,8 @@ function loadExchangeRate() {
         .then(function(res) { return res.json(); })
         .then(function(rate) {
             exchangeRateValue = Number(rate.rate);
-            document.getElementById('navExchangeRate').innerText =
-                exchangeRateValue.toLocaleString();
-            document.getElementById('exchangeRate').innerText =
-                exchangeRateValue.toLocaleString() + ' KRW / USD';
+            document.getElementById('navExchangeRate').innerText = exchangeRateValue.toLocaleString();
+            document.getElementById('exchangeRate').innerText = exchangeRateValue.toLocaleString() + ' KRW / USD';
         });
 }
 
@@ -215,6 +212,7 @@ function loadSymbolList() {
     fetch(contextPath + '/etf/symbols.do')
         .then(function(res) { return res.json(); })
         .then(function(list) {
+            symbolList = list;
             var select = document.getElementById('symbolSelect');
             list.forEach(function(item) {
                 var opt = document.createElement('option');
@@ -225,6 +223,58 @@ function loadSymbolList() {
         });
 }
 
+// 자동완성
+document.getElementById('searchInput').addEventListener('input', function() {
+    var val = this.value.trim().toUpperCase();
+    var box = document.getElementById('autocompleteBox');
+    document.getElementById('symbolSelect').value = val;
+    if (!val) { box.style.display = 'none'; return; }
+    var filtered = symbolList.filter(function(item) {
+        return item.symbol.toUpperCase().indexOf(val) === 0;
+    });
+    if (filtered.length === 0) { box.style.display = 'none'; return; }
+    box.innerHTML = '';
+    filtered.slice(0, 8).forEach(function(item) {
+        var div = document.createElement('div');
+        div.className = 'autocomplete-item';
+        div.innerHTML = '<strong>' + item.symbol + '</strong> <span class="text-muted" style="font-size:0.8rem;">' + item.divYield + '%</span>';
+        div.addEventListener('click', function() {
+            document.getElementById('searchInput').value = item.symbol;
+            document.getElementById('symbolSelect').value = item.symbol;
+            box.style.display = 'none';
+            loadEtfInfo(item.symbol);
+        });
+        box.appendChild(div);
+    });
+    box.style.display = 'block';
+});
+
+document.getElementById('searchInput').addEventListener('keydown', function(e) {
+    var box = document.getElementById('autocompleteBox');
+    var items = box.querySelectorAll('.autocomplete-item');
+    var active = box.querySelector('.autocomplete-item.active');
+    var idx = -1;
+    items.forEach(function(item, i) { if (item === active) idx = i; });
+    if (e.key === 'ArrowDown') {
+        e.preventDefault();
+        if (idx < items.length - 1) { if (active) active.classList.remove('active'); items[idx+1].classList.add('active'); }
+    } else if (e.key === 'ArrowUp') {
+        e.preventDefault();
+        if (idx > 0) { if (active) active.classList.remove('active'); items[idx-1].classList.add('active'); }
+    } else if (e.key === 'Enter') {
+        if (active) { active.click(); }
+        else { document.getElementById('searchBtn').click(); }
+    } else if (e.key === 'Escape') {
+        box.style.display = 'none';
+    }
+});
+
+document.addEventListener('click', function(e) {
+    var box = document.getElementById('autocompleteBox');
+    var input = document.getElementById('searchInput');
+    if (box && !box.contains(e.target) && e.target !== input) box.style.display = 'none';
+});
+
 document.getElementById('investAmount').addEventListener('input', function() {
     var val = this.value.replace(/,/g, '').replace(/[^0-9]/g, '');
     if (val) this.value = Number(val).toLocaleString();
@@ -233,22 +283,15 @@ document.getElementById('investAmount').addEventListener('input', function() {
 document.getElementById('symbolSelect').addEventListener('change', function() {
     if (this.value) {
         document.getElementById('searchInput').value = this.value;
+        document.getElementById('autocompleteBox').style.display = 'none';
         loadEtfInfo(this.value);
     }
 });
 
 document.getElementById('searchBtn').addEventListener('click', function() {
     var symbol = document.getElementById('searchInput').value.trim().toUpperCase();
-    if (!symbol) {
-        alert('티커를 입력해주세요.');
-        document.getElementById('searchInput').value = '';
-        return;
-    }
+    if (!symbol) { alert('티커를 입력해주세요.'); return; }
     loadEtfInfo(symbol);
-});
-
-document.getElementById('searchInput').addEventListener('keydown', function(e) {
-    if (e.key === 'Enter') document.getElementById('searchBtn').click();
 });
 
 function loadEtfInfo(symbol) {
