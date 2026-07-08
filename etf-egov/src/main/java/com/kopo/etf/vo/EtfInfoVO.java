@@ -15,14 +15,15 @@ public class EtfInfoVO implements Serializable {
 
     private String symbol;          // 티커 심볼 (PK, 예: QQQI)
     private BigDecimal price;       // 현재가 / 전일 종가 (USD)
-    private BigDecimal openPrice;   // 시작가 (USD) ★ 신규
-    private BigDecimal highPrice;   // 고가 (USD) ★ 신규
-    private BigDecimal lowPrice;    // 저가 (USD) ★ 신규
+    private BigDecimal openPrice;   // 시작가 (USD) 
+    private BigDecimal highPrice;   // 고가 (USD) 
+    private BigDecimal lowPrice;    // 저가 (USD) 
     private Long volume;            // 거래량 ★ 신규
     private String issuer;          // ETF 전체 이름 (Polygon name)
-    private String description;     // ETF 설명 (AI 생성) ★ 신규
+    private String description;     // ETF 설명 (AI 생성) 
     private BigDecimal annualDiv;   // 12개월 합산 배당금 (USD)
     private BigDecimal divYield;    // 연 배당률 (%)
+    private BigDecimal afterTaxYield; // 세후 배당률 (%)
     private Integer divCount;       // 12개월 배당 횟수
     private Date updatedAt;         // 데이터 기준일 (Polygon 기준)
     private Date createdAt;         // 최초 적재일시
@@ -58,6 +59,9 @@ public class EtfInfoVO implements Serializable {
 
     public BigDecimal getDivYield() { return divYield; }
     public void setDivYield(BigDecimal divYield) { this.divYield = divYield; }
+    
+    public BigDecimal getAfterTaxYield() { return afterTaxYield; }
+    public void setAfterTaxYield(BigDecimal afterTaxYield) { this.afterTaxYield = afterTaxYield; }
 
     public Integer getDivCount() { return divCount; }
     public void setDivCount(Integer divCount) { this.divCount = divCount; }
