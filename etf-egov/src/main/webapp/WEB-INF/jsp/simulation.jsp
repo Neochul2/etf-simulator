@@ -252,6 +252,7 @@ document.getElementById('symbolSelect').addEventListener('change', function() {
     if (this.value) loadEtfInfo(this.value);
 });
 
+//loadEtfInfo 함수 catch
 function loadEtfInfo(symbol) {
     fetch(contextPath + '/etf/' + symbol + '/detail.do')
         .then(function(res) { return res.json(); })
@@ -264,16 +265,15 @@ function loadEtfInfo(symbol) {
             document.getElementById('symbolBadge').innerText = symbol;
             document.getElementById('price').innerText = '$' + info.price;
             document.getElementById('divYield').innerText = info.divYield + '%';
-            // Java에서 받아온 세후 배당률 사용
             document.getElementById('afterTaxYield').innerText = info.afterTaxYield + '%';
 
             currentDivYield = info.divYield;
         })
         .catch(function() {
             alert('해당 티커를 찾을 수 없습니다: ' + symbol);
+            document.getElementById('symbolSelect').value = ''; // ← 추가
         });
 }
-
 document.getElementById('initialAmount').addEventListener('input', function() {
     this.value = formatNumber(this.value);
 });

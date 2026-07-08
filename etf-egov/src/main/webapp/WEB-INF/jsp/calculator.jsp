@@ -170,7 +170,6 @@ var contextPath = '<%=request.getContextPath()%>';
 var currentSymbol = '';
 var exchangeRateValue = 0;
 
-// 환율 업데이트 버튼
 function updateExchangeRate() {
     var btn = document.getElementById('navRateUpdateBtn');
     btn.disabled = true;
@@ -240,7 +239,11 @@ document.getElementById('symbolSelect').addEventListener('change', function() {
 
 document.getElementById('searchBtn').addEventListener('click', function() {
     var symbol = document.getElementById('searchInput').value.trim().toUpperCase();
-    if (!symbol) { alert('티커를 입력해주세요.'); return; }
+    if (!symbol) {
+        alert('티커를 입력해주세요.');
+        document.getElementById('searchInput').value = '';
+        return;
+    }
     loadEtfInfo(symbol);
 });
 
@@ -253,7 +256,6 @@ function loadEtfInfo(symbol) {
         .then(function(res) { return res.json(); })
         .then(function(data) {
             currentSymbol = symbol;
-
             document.getElementById('logoBox').innerText = symbol;
             document.getElementById('etfName').innerText = data.info.issuer || symbol;
             document.getElementById('symbolBadge').innerText = symbol;
@@ -263,6 +265,8 @@ function loadEtfInfo(symbol) {
         })
         .catch(function() {
             alert('해당 티커를 찾을 수 없습니다: ' + symbol);
+            document.getElementById('searchInput').value = '';
+            document.getElementById('symbolSelect').value = '';
         });
 }
 

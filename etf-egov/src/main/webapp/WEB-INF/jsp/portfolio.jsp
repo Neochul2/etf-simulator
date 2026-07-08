@@ -164,7 +164,6 @@ function updateExchangeRate() {
 
 document.addEventListener('DOMContentLoaded', function() {
 
-    // 환율 1번만 호출
     fetch(CTX + '/exchange/latest.do')
         .then(function(r) { return r.json(); })
         .then(function(d) {
@@ -175,7 +174,6 @@ document.addEventListener('DOMContentLoaded', function() {
                 exchangeRateValue.toLocaleString();
         });
 
-    // 드롭다운 ETF 목록 로드
     fetch(CTX + '/etf/symbols.do')
         .then(function(r) { return r.json(); })
         .then(function(list) {
@@ -188,10 +186,8 @@ document.addEventListener('DOMContentLoaded', function() {
             });
         });
 
-    // 포트폴리오 데이터 로드
     loadPortfolioData();
 
-    // 투자금액 콤마 자동 추가
     document.getElementById('addInvestAmt').addEventListener('input', function() {
         this.value = formatNumber(this.value);
     });
@@ -266,15 +262,21 @@ function renderTable(list) {
     area.innerHTML = html;
 }
 
-// 종목 추가
 function addPortfolio() {
     var symbol    = document.getElementById('addSymbol').value;
     var investAmt = parseNumber(document.getElementById('addInvestAmt').value);
 
-    if (!symbol)    { alert('종목을 선택해주세요.'); return; }
-    if (!investAmt) { alert('투자금액을 입력해주세요.'); return; }
+    if (!symbol) {
+        alert('종목을 선택해주세요.');
+        document.getElementById('addSymbol').value = '';
+        return;
+    }
+    if (!investAmt) {
+        alert('투자금액을 입력해주세요.');
+        document.getElementById('addInvestAmt').value = '';
+        return;
+    }
 
-    // 추가 중 버튼 비활성화
     var btn = document.getElementById('addBtn');
     btn.disabled = true;
     btn.innerText = '추가 중...';
@@ -291,7 +293,6 @@ function addPortfolio() {
             loadPortfolioData();
         })
         .catch(function() {
-            // 타임아웃 등 오류 시에도 재조회 (실제로는 DB에 저장됐을 수 있음)
             loadPortfolioData();
         })
         .finally(function() {
@@ -300,14 +301,12 @@ function addPortfolio() {
         });
 }
 
-// 종목 삭제
 function deletePortfolio(id) {
     if (!confirm('이 종목을 삭제하시겠습니까?')) return;
 
     var params = new URLSearchParams();
     params.append('id', id);
 
-    // 삭제 중 표시
     var btn = event.target;
     btn.disabled = true;
     btn.innerText = '삭제 중...';
@@ -318,12 +317,10 @@ function deletePortfolio(id) {
             loadPortfolioData();
         })
         .catch(function() {
-            // 타임아웃 등 오류 시에도 재조회
             loadPortfolioData();
         });
 }
 
-// 콤마 자동 추가 (수정 입력창)
 document.addEventListener('input', function(e) {
     if (e.target.classList.contains('amt-input')) {
         e.target.value = formatNumber(e.target.value);
@@ -353,6 +350,7 @@ document.addEventListener('click', function(e) {
 
         if (!newAmt || newAmt <= 0) {
             alert('올바른 금액을 입력해주세요.');
+            td.querySelector('.amt-input').value = '';
             return;
         }
 
@@ -370,7 +368,6 @@ document.addEventListener('click', function(e) {
                 loadPortfolioData();
             })
             .catch(function() {
-                // 타임아웃 등 오류 시에도 재조회
                 loadPortfolioData();
             });
     }
