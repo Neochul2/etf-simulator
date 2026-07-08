@@ -168,7 +168,6 @@ body { background-color: #f8f9fa; }
 <script>
 var contextPath = '<%=request.getContextPath()%>';
 var currentSymbol = '';
-var currentDivYield = 0;
 var exchangeRateValue = 0;
 
 // 환율 업데이트 버튼
@@ -202,7 +201,6 @@ window.addEventListener('DOMContentLoaded', function() {
 });
 
 function loadExchangeRate() {
-    // 환율 1번만 호출 — 네비바 + 환율 카드 + exchangeRateValue 동시 세팅
     fetch(contextPath + '/exchange/latest.do')
         .then(function(res) { return res.json(); })
         .then(function(rate) {
@@ -211,7 +209,6 @@ function loadExchangeRate() {
                 exchangeRateValue.toLocaleString();
             document.getElementById('exchangeRate').innerText =
                 exchangeRateValue.toLocaleString() + ' KRW / USD';
-            updateUsdConverted();
         });
 }
 
@@ -232,7 +229,6 @@ function loadSymbolList() {
 document.getElementById('investAmount').addEventListener('input', function() {
     var val = this.value.replace(/,/g, '').replace(/[^0-9]/g, '');
     if (val) this.value = Number(val).toLocaleString();
-    updateUsdConverted();
 });
 
 document.getElementById('symbolSelect').addEventListener('change', function() {
@@ -257,29 +253,17 @@ function loadEtfInfo(symbol) {
         .then(function(res) { return res.json(); })
         .then(function(data) {
             currentSymbol = symbol;
-            currentDivYield = data.info.divYield;
 
             document.getElementById('logoBox').innerText = symbol;
             document.getElementById('etfName').innerText = data.info.issuer || symbol;
             document.getElementById('symbolBadge').innerText = symbol;
-            document.getElementById('divYield').innerText = currentDivYield + '%';
-            document.getElementById('afterTaxYield').innerText =
-                (currentDivYield * (1 - 0.154)).toFixed(2) + '%';
-
+            document.getElementById('divYield').innerText = data.info.divYield + '%';
+            document.getElementById('afterTaxYield').innerText = data.info.afterTaxYield + '%';
             document.getElementById('symbolSelect').value = symbol;
-            updateUsdConverted();
         })
         .catch(function() {
             alert('해당 티커를 찾을 수 없습니다: ' + symbol);
         });
-}
-
-function updateUsdConverted() {
-    var krw = parseFloat(document.getElementById('investAmount').value.replace(/,/g, '')) || 0;
-    if (exchangeRateValue > 0) {
-        document.getElementById('usdConverted').innerText =
-            '≈ $' + (krw / exchangeRateValue).toFixed(2) + ' USD';
-    }
 }
 
 document.getElementById('calculateBtn').addEventListener('click', calculate);
