@@ -1,4 +1,5 @@
-[00_미국_월배당_ETF_시뮬레이터__요약패널.pdf](https://github.com/user-attachments/files/29799512/00_._._ETF_.__.pdf)
+![Uploading image.png…]()
+
 # 미국 월배당 ETF 시뮬레이터
 
 Polygon.io 실제 데이터 기반 배당 계산 및 DRIP 복리 시뮬레이션 서비스
