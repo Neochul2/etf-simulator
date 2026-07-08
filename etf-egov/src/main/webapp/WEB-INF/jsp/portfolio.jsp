@@ -52,9 +52,7 @@ body { background-color: #f8f9fa; }
             <div class="row g-2 align-items-end">
                 <div class="col-md-4">
                     <label class="form-label text-muted" style="font-size:0.82rem;">ETF 종목 선택</label>
-                    <select class="form-select" id="addSymbol">
-                        <option value="">종목 선택</option>
-                    </select>
+                    <input type="text" class="form-control" id="addSymbol" placeholder="티커 입력 (예: JEPI)">
                 </div>
                 <div class="col-md-4">
                     <label class="form-label text-muted" style="font-size:0.82rem;">투자금액 (원화)</label>
@@ -174,22 +172,15 @@ document.addEventListener('DOMContentLoaded', function() {
                 exchangeRateValue.toLocaleString();
         });
 
-    fetch(CTX + '/etf/symbols.do')
-        .then(function(r) { return r.json(); })
-        .then(function(list) {
-            var sel = document.getElementById('addSymbol');
-            list.forEach(function(etf) {
-                var opt = document.createElement('option');
-                opt.value = etf.symbol;
-                opt.text = etf.symbol + ' (' + etf.divYield + '%)';
-                sel.appendChild(opt);
-            });
-        });
-
     loadPortfolioData();
 
     document.getElementById('addInvestAmt').addEventListener('input', function() {
         this.value = formatNumber(this.value);
+    });
+
+    // 티커 입력 후 Enter
+    document.getElementById('addSymbol').addEventListener('keydown', function(e) {
+        if (e.key === 'Enter') addPortfolio();
     });
 });
 
@@ -263,11 +254,11 @@ function renderTable(list) {
 }
 
 function addPortfolio() {
-    var symbol    = document.getElementById('addSymbol').value;
+    var symbol    = document.getElementById('addSymbol').value.trim().toUpperCase();
     var investAmt = parseNumber(document.getElementById('addInvestAmt').value);
 
     if (!symbol) {
-        alert('종목을 선택해주세요.');
+        alert('종목을 입력해주세요.');
         document.getElementById('addSymbol').value = '';
         return;
     }
@@ -328,21 +319,18 @@ document.addEventListener('input', function(e) {
 });
 
 document.addEventListener('click', function(e) {
-    // 수정 버튼
     if (e.target.classList.contains('amt-edit-btn')) {
         var td = e.target.closest('.invest-amt-cell');
         td.querySelector('.amt-display').style.display = 'none';
         td.querySelector('.amt-edit').style.display = 'block';
     }
 
-    // 취소
     if (e.target.classList.contains('amt-cancel-btn')) {
         var td = e.target.closest('.invest-amt-cell');
         td.querySelector('.amt-display').style.display = '';
         td.querySelector('.amt-edit').style.display = 'none';
     }
 
-    // 저장
     if (e.target.classList.contains('amt-save-btn')) {
         var td = e.target.closest('.invest-amt-cell');
         var id = td.dataset.id;
