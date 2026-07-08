@@ -216,7 +216,7 @@ function renderSummary(data) {
     document.getElementById('totalMonthlyDivUsd').innerText =
         '$' + usdFmt(data.totalMonthlyDivUsd);
     document.getElementById('totalYearlyDiv').innerText =
-        numFmt(Math.round(Number(data.totalMonthlyDiv)) * 12) + '원';
+        numFmt(data.totalYearlyDiv) + '원';
     document.getElementById('portfolioCount').innerText =
         data.portfolioList.length + '개';
 }
@@ -257,7 +257,7 @@ function renderTable(list) {
             +   numFmt(p.monthlyDiv) + '원<br>'
             +   '<small class="text-muted">$' + usdFmt(p.monthlyDivUsd) + '</small>'
             + '</td>'
-            + '<td class="text-success">' + numFmt(Number(p.monthlyDiv) * 12) + '원</td>'
+            + '<td class="text-success">' + numFmt(p.yearlyDiv) + '원</td>'
             + '<td><button class="btn btn-sm btn-outline-danger" onclick="deletePortfolio(' + p.id + ')">삭제</button></td>'
             + '</tr>';
     });

@@ -9,12 +9,13 @@ public class PortfolioVO implements Serializable {
 
     private Long id;
     private String symbol;
-    private String issuer;           // ETF 전체명 (etf_info 조인)
-    private BigDecimal investAmt;    // 투자금액 (원화)
-    private BigDecimal investUsd;    // 투자금액 (USD, 계산값)
-    private BigDecimal divYield;     // 배당률 % (etf_info 조인)
-    private BigDecimal monthlyDiv;   // 세후 월배당금 (원화, 계산값)
-    private BigDecimal monthlyDivUsd;// 세후 월배당금 (USD, 계산값)
+    private String issuer;
+    private BigDecimal investAmt;
+    private BigDecimal investUsd;
+    private BigDecimal divYield;
+    private BigDecimal monthlyDiv;
+    private BigDecimal monthlyDivUsd;
+    private BigDecimal yearlyDiv;     // 세후 연배당금 (원화, 계산값)
     private String createdAt;
 
     public Long getId() { return id; }
@@ -40,6 +41,9 @@ public class PortfolioVO implements Serializable {
 
     public BigDecimal getMonthlyDivUsd() { return monthlyDivUsd; }
     public void setMonthlyDivUsd(BigDecimal monthlyDivUsd) { this.monthlyDivUsd = monthlyDivUsd; }
+
+    public BigDecimal getYearlyDiv() { return yearlyDiv; }
+    public void setYearlyDiv(BigDecimal yearlyDiv) { this.yearlyDiv = yearlyDiv; }
 
     public String getCreatedAt() { return createdAt; }
     public void setCreatedAt(String createdAt) { this.createdAt = createdAt; }

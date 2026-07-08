@@ -31,6 +31,7 @@ public class PortfolioServiceImpl implements PortfolioService {
         BigDecimal totalAmt           = BigDecimal.ZERO;
         BigDecimal totalMonthlyDiv    = BigDecimal.ZERO;
         BigDecimal totalMonthlyDivUsd = BigDecimal.ZERO;
+        BigDecimal totalYearlyDiv     = BigDecimal.ZERO;
 
         for (PortfolioVO vo : list) {
             totalAmt = totalAmt.add(vo.getInvestAmt());
@@ -46,12 +47,20 @@ public class PortfolioServiceImpl implements PortfolioService {
                         .multiply(BigDecimal.ONE.subtract(TAX_RATE))
                         .divide(TWELVE, 4, RoundingMode.HALF_UP);
                 vo.setMonthlyDivUsd(monthlyDivUsd);
-                vo.setMonthlyDiv(monthlyDivUsd
+
+                BigDecimal monthlyDiv = monthlyDivUsd
                         .multiply(exchangeRate)
-                        .setScale(0, RoundingMode.HALF_UP));
+                        .setScale(0, RoundingMode.HALF_UP);
+                vo.setMonthlyDiv(monthlyDiv);
+
+                // 연배당금 계산 (Java에서 처리)
+                BigDecimal yearlyDiv = monthlyDiv.multiply(TWELVE)
+                        .setScale(0, RoundingMode.HALF_UP);
+                vo.setYearlyDiv(yearlyDiv);
 
                 totalMonthlyDivUsd = totalMonthlyDivUsd.add(monthlyDivUsd);
-                totalMonthlyDiv    = totalMonthlyDiv.add(vo.getMonthlyDiv());
+                totalMonthlyDiv    = totalMonthlyDiv.add(monthlyDiv);
+                totalYearlyDiv     = totalYearlyDiv.add(yearlyDiv);
             }
         }
 
@@ -61,6 +70,7 @@ public class PortfolioServiceImpl implements PortfolioService {
         result.put("totalAmtUsd",        totalAmt.divide(exchangeRate, 2, RoundingMode.HALF_UP));
         result.put("totalMonthlyDiv",    totalMonthlyDiv);
         result.put("totalMonthlyDivUsd", totalMonthlyDivUsd);
+        result.put("totalYearlyDiv",     totalYearlyDiv);
         result.put("exchangeRate",       exchangeRate);
         return result;
     }
