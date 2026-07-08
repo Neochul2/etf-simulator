@@ -1,0 +1,43 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+    "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<!--
+    simulation_result 테이블 SQL 매퍼
+    namespace = Mapper 인터페이스 풀패키지명과 반드시 일치해야 함
+    MyBatis가 메서드명(insertSimulationResult)과 id를 자동 매핑
+-->
+<mapper namespace="com.kopo.etf.mapper.SimulationResultMapper">
+
+    <!--
+        시뮬레이션 결과 INSERT
+        - saved_at은 DB DEFAULT(CURRENT_TIMESTAMP)이므로 INSERT 목록에서 제외
+        - VO 필드명(camelCase) → DB 컬럼명(snake_case) 직접 매핑
+        - useGeneratedKeys="true" : AUTO_INCREMENT로 생성된 id를 vo.id에 자동 주입
+    -->
+    <insert id="insertSimulationResult"
+            parameterType="com.kopo.etf.vo.SimulationResultVO"
+            useGeneratedKeys="true"
+            keyProperty="id">
+        INSERT INTO simulation_result (
+            symbol,
+            invest_type,
+            initial_amt,
+            monthly_amt,
+            months,
+            div_yield,
+            total_div,
+            final_assets
+        ) VALUES (
+            #{symbol},
+            #{investType},
+            #{initialAmt},
+            #{monthlyAmt},
+            #{months},
+            #{divYield},
+            #{totalDiv},
+            #{finalAssets}
+        )
+    </insert>
+
+</mapper>
