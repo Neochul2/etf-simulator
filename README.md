@@ -142,25 +142,8 @@ etf-simulator/
 
 ## 아키텍처
 
-```
-[ETFdb.com CSV]      [Polygon.io API]      [수출입은행 API]
-  (초기 1회 적재)       (매일 08:00)          (매일 11:05)
-        |                    |                     |
-        +--------------------+---------------------+
-                             |
-                  [FastAPI (uvicorn :8000)]
-                   데이터 수집 / 가공 / 적재
-                             |
-                      [MySQL 8.0.46]
-                             |
-            [eGovFrame + MyBatis (Tomcat :8080)]
-              RestTemplate으로 FastAPI 호출
-              (FastAPI 장애 시 MyBatis 직접 조회)
-                             |
-                  [JSP + jQuery + Bootstrap]
-                             |
-                      [사용자 (Web Browser)]
-```
+<img width="1536" height="1024" alt="f9b83db4-3838-44ed-9e74-20ef706c2104" src="https://github.com/user-attachments/assets/58eef2d3-42ed-46cc-a33b-76644de3ba5c" />
+
 
 - **FastAPI**: 외부 API 데이터 수집·적재 및 REST API 제공 (crontab 매일 자동 실행)
 - **eGovFrame**: FastAPI를 RestTemplate으로 호출, 장애 시 DB 직접 조회(fallback) 자동 전환
