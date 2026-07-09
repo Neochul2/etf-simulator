@@ -1,7 +1,8 @@
 
 
 
-[00_미국_월배당_ETF_시뮬레이터__요약패널.pdf](https://github.com/user-attachments/files/29836323/00_._._ETF_.__.pdf)
+<img width="757" height="1001" alt="image" src="https://github.com/user-attachments/assets/b85c3a4f-d838-43f1-9d5c-53f2d12fad4e" />
+
 
 
 
