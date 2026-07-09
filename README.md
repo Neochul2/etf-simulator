@@ -1,12 +1,11 @@
 
 
 
+[00_미국_월배당_ETF_시뮬레이터__요약패널.pdf](https://github.com/user-attachments/files/29836323/00_._._ETF_.__.pdf)
 
 
 
 
-
-[00_미국_월배당_ETF_시뮬레이터__요약패널.pdf](https://github.com/user-attachments/files/29836308/00_._._ETF_.__.pdf)
 [README.md](https://github.com/user-attachments/files/29833225/README.md)
 # 미국 월배당 ETF 시뮬레이터
 
