@@ -14,6 +14,7 @@
         신규: open_price, high_price, low_price, volume, issuer 추가
     -->
     <select id="selectEtfInfo" parameterType="String" resultType="com.kopo.etf.info.vo.EtfInfoVO">
+        SELECT  
             symbol,
             price,
             open_price   AS openPrice,
