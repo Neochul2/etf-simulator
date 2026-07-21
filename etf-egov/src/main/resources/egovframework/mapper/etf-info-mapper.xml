@@ -6,7 +6,7 @@
     etf_info 테이블 SQL 정의
     namespace는 반드시 대응되는 Mapper 인터페이스의 풀패키지명과 일치해야 함
 -->
-<mapper namespace="com.kopo.etf.mapper.EtfInfoMapper">
+<mapper namespace="com.kopo.etf.info.mapper.EtfInfoMapper">
 
     <!--
         티커 심볼로 ETF 단건 조회 (화면1·2·3)

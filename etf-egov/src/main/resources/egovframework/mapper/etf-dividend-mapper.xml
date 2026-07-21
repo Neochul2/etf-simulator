@@ -3,7 +3,7 @@
     "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
 
 <!-- etf_dividend 테이블 SQL 정의 -->
-<mapper namespace="com.kopo.etf.mapper.EtfDividendMapper">
+<mapper namespace="com.kopo.etf.info.mapper.EtfDividendMapper">
 
     <!--
         특정 ETF의 최근 6개월 배당 내역 조회 (화면1)
