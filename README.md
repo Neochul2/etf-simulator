@@ -52,7 +52,7 @@ FastAPI(Python)가 외부 API로부터 데이터를 수집·적재하고, eGovFr
 | 언어 | Java 17 / Python 3.12 |
 | 데이터베이스 | MySQL 8.0.46 (`etf_db`) |
 | WAS | Apache Tomcat 9.0.86 / uvicorn 0.30.6 + systemd |
-| OS / 인프라 | Ubuntu 24.04 LTS / Oracle Cloud VM.Standard.E2.1.Micro |
+| OS | Ubuntu 24.04 LTS / Windows 11 |
 | 주요 라이브러리 | jackson-databind 2.17.1, mysql-connector-j 8.4.0, Lombok 1.18.34 |
 | Python 패키지 | requests 2.32.3, mysql-connector-python 9.0.0, python-dotenv 1.0.1, pandas 2.2.2, pydantic 2.8.2 |
 | 외부 API | Polygon.io (주가·배당·배당락일) / 한국수출입은행 (USD/KRW 환율) |
