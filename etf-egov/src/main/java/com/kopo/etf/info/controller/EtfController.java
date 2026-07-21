@@ -1,4 +1,4 @@
-package com.kopo.etf.controller;
+package com.kopo.etf.info.controller;
 
 import java.math.BigDecimal;
 import java.math.RoundingMode;
@@ -16,10 +16,10 @@ import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.ResponseBody;
 import org.springframework.web.client.RestTemplate;
 
-import com.kopo.etf.service.EtfInfoService;
+import com.kopo.etf.info.service.EtfInfoService;
+import com.kopo.etf.info.vo.EtfInfoVO;
 import com.kopo.etf.service.ExchangeRateService;
 import com.kopo.etf.vo.EtfDividendVO;
-import com.kopo.etf.vo.EtfInfoVO;
 import com.kopo.etf.vo.ExchangeRateVO;
 
 @Controller

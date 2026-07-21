@@ -1,4 +1,4 @@
-package com.kopo.etf.mapper;
+package com.kopo.etf.info.mapper;
 
 import java.util.List;
 

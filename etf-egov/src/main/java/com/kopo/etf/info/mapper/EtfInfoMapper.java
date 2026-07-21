@@ -1,8 +1,8 @@
-package com.kopo.etf.mapper;
+package com.kopo.etf.info.mapper;
 
 import java.util.List;
 
-import com.kopo.etf.vo.EtfInfoVO;
+import com.kopo.etf.info.vo.EtfInfoVO;
 
 public interface EtfInfoMapper {
 

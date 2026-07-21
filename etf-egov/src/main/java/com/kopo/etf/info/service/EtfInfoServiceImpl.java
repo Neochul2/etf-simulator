@@ -1,4 +1,4 @@
-package com.kopo.etf.service.impl;
+package com.kopo.etf.info.service;
 
 import java.util.List;
 
@@ -6,11 +6,10 @@ import javax.annotation.Resource;
 
 import org.springframework.stereotype.Service;
 
-import com.kopo.etf.mapper.EtfDividendMapper;
-import com.kopo.etf.mapper.EtfInfoMapper;
-import com.kopo.etf.service.EtfInfoService;
+import com.kopo.etf.info.mapper.EtfDividendMapper;
+import com.kopo.etf.info.mapper.EtfInfoMapper;
+import com.kopo.etf.info.vo.EtfInfoVO;
 import com.kopo.etf.vo.EtfDividendVO;
-import com.kopo.etf.vo.EtfInfoVO;
 
 /**
  * ETF 조회 관련 비즈니스 로직 구현체 (화면1)
