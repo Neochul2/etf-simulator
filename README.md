@@ -352,28 +352,4 @@ sudo timedatectl set-timezone Asia/Seoul
 
 ---
 
-## Spring MVC 설정 구조
-
-### web.xml
-
-- `CharacterEncodingFilter` (UTF-8, forceEncoding=true)
-- `ContextLoaderListener` → `classpath*:egovframework/spring/context-*.xml` 일괄 로드
-- `DispatcherServlet` → `dispatcher-servlet.xml`, URL 패턴 `*.do`
-- 에러 페이지: 404·500 → `/WEB-INF/jsp/error.jsp`
-
-### context-*.xml
-
-| 파일 | 역할 |
-|---|---|
-| `context-common.xml` | `component-scan` (Controller 제외), `globals.properties` 로드 |
-| `context-datasource.xml` | `DriverManagerDataSource` (MySQL localhost:3306/etf_db) |
-| `context-mapper.xml` | `SqlSessionFactoryBean`, `MapperScannerConfigurer` |
-| `context-transaction.xml` | `DataSourceTransactionManager` |
-
-### dispatcher-servlet.xml
-
-- `component-scan` (Controller만 포함)
-- `MappingJackson2HttpMessageConverter` — Jackson 날짜 포맷 `yyyy-MM-dd` 통일
-- `InternalResourceViewResolver` — prefix `/WEB-INF/jsp/`, suffix `.jsp`
-- `globals.properties` 재로드 (`@Value("${fastapi.base.url}")` 사용)
 
