@@ -1,6 +1,6 @@
-package com.kopo.etf.service;
+package com.kopo.etf.simulation.service;
 
-import com.kopo.etf.vo.SimulationResultVO;
+import com.kopo.etf.simulation.vo.SimulationResultVO;
 
 /**
  * 시뮬레이션 결과 저장 Service 인터페이스

@@ -1,4 +1,4 @@
-package com.kopo.etf.service.impl;
+package com.kopo.etf.simulation.service;
 
 import java.math.BigDecimal;
 import java.math.MathContext;
@@ -6,8 +6,7 @@ import java.math.RoundingMode;
 
 import org.springframework.stereotype.Service;
 
-import com.kopo.etf.service.DripCalculatorService;
-import com.kopo.etf.vo.DripResultVO;
+import com.kopo.etf.simulation.vo.DripResultVO;
 
 @Service("dripCalculatorService")
 public class DripCalculatorServiceImpl implements DripCalculatorService {

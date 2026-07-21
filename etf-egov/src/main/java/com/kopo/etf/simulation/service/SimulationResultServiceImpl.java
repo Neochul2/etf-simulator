@@ -1,12 +1,11 @@
-package com.kopo.etf.service.impl;
+package com.kopo.etf.simulation.service;
 
 import javax.annotation.Resource;
 
 import org.springframework.stereotype.Service;
 
 import com.kopo.etf.mapper.SimulationResultMapper;
-import com.kopo.etf.service.SimulationResultService;
-import com.kopo.etf.vo.SimulationResultVO;
+import com.kopo.etf.simulation.vo.SimulationResultVO;
 
 /**
  * 시뮬레이션 결과 저장 Service 구현체

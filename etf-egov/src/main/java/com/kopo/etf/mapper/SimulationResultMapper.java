@@ -1,6 +1,6 @@
 package com.kopo.etf.mapper;
 
-import com.kopo.etf.vo.SimulationResultVO;
+import com.kopo.etf.simulation.vo.SimulationResultVO;
 
 /**
  * simulation_result 테이블 Mapper 인터페이스

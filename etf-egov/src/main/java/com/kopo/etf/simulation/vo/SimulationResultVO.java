@@ -1,4 +1,4 @@
-package com.kopo.etf.vo;
+package com.kopo.etf.simulation.vo;
 
 import java.io.Serializable;
 
