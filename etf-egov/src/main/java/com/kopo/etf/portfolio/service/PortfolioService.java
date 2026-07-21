@@ -1,9 +1,9 @@
-package com.kopo.etf.service;
+package com.kopo.etf.portfolio.service;
 
 import java.math.BigDecimal;
 import java.util.Map;
 
-import com.kopo.etf.vo.PortfolioVO;
+import com.kopo.etf.portfolio.vo.PortfolioVO;
 
 public interface PortfolioService {
     Map<String, Object> getPortfolioData(BigDecimal exchangeRate);

@@ -1,11 +1,11 @@
-package com.kopo.etf.mapper;
+package com.kopo.etf.portfolio.mapper;
 
 import java.math.BigDecimal;
 import java.util.List;
 
 import org.apache.ibatis.annotations.Param;
 
-import com.kopo.etf.vo.PortfolioVO;
+import com.kopo.etf.portfolio.vo.PortfolioVO;
 
 public interface PortfolioMapper {
     List<PortfolioVO> selectPortfolioList();
