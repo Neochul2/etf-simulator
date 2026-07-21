@@ -48,13 +48,10 @@ FastAPI(Python)가 외부 API로부터 데이터를 수집·적재하고, eGovFr
 | 구분 | 내용 |
 |---|---|
 | 언어 | Java 17 / Python 3.12 |
-| 프레임워크 | eGovFrame 4.3.1 (Spring MVC) / FastAPI 0.115.0 |
-| ORM | MyBatis 3.5.15 (mybatis-spring 2.1.2) |
+| 프레임워크 | eGovFrame 4.3.1 (Spring MVC) / FastAPI 0.115.0 ||
 | 데이터베이스 | MySQL 8.0.46 (`etf_db`) |
 | WAS | Apache Tomcat 9.0.86 / uvicorn 0.30.6 + systemd |
 | OS / 인프라 | Ubuntu 24.04 LTS / Oracle Cloud VM.Standard.E2.1.Micro |
-| 주요 라이브러리 | jackson-databind 2.17.1, mysql-connector-j 8.4.0, Lombok 1.18.34 |
-| Python 패키지 | requests 2.32.3, mysql-connector-python 9.0.0, python-dotenv 1.0.1, pandas 2.2.2, pydantic 2.8.2 |
 | 외부 API | Polygon.io (주가·배당·배당락일) / 한국수출입은행 (USD/KRW 환율) |
 | 자동화 | crontab + Telegram Bot API |
 | 형상관리 | Git (feature → develop → main) |
@@ -354,59 +351,3 @@ sudo timedatectl set-timezone Asia/Seoul
 수집 결과는 `telegram_notify.py`를 통해 성공 종목 수·실패 종목 목록이 Telegram Bot으로 자동 전송됩니다.
 
 ---
-
-## Spring MVC 설정 구조
-
-### web.xml
-
-- `CharacterEncodingFilter` (UTF-8, forceEncoding=true)
-- `ContextLoaderListener` → `classpath*:egovframework/spring/context-*.xml` 일괄 로드
-- `DispatcherServlet` → `dispatcher-servlet.xml`, URL 패턴 `*.do`
-- 에러 페이지: 404·500 → `/WEB-INF/jsp/error.jsp`
-
-### context-*.xml
-
-| 파일 | 역할 |
-|---|---|
-| `context-common.xml` | `component-scan` (Controller 제외), `globals.properties` 로드 |
-| `context-datasource.xml` | `DriverManagerDataSource` (MySQL localhost:3306/etf_db) |
-| `context-mapper.xml` | `SqlSessionFactoryBean`, `MapperScannerConfigurer` |
-| `context-transaction.xml` | `DataSourceTransactionManager` |
-
-### dispatcher-servlet.xml
-
-- `component-scan` (Controller만 포함)
-- `MappingJackson2HttpMessageConverter` — Jackson 날짜 포맷 `yyyy-MM-dd` 통일
-- `InternalResourceViewResolver` — prefix `/WEB-INF/jsp/`, suffix `.jsp`
-- `globals.properties` 재로드 (`@Value("${fastapi.base.url}")` 사용)
-
-### globals.properties
-
-```properties
-fastapi.base.url=http://localhost:8000
-```
-
----
-
-## 환경변수 (.env)
-
-```env
-# Polygon.io
-POLYGON_API_KEY=your_polygon_api_key
-
-# 한국수출입은행
-KOREAEXIM_API_KEY=your_koreaexim_api_key
-
-# MySQL
-DB_HOST=localhost
-DB_PORT=3307
-DB_USER=etfuser
-DB_PASSWORD=your_db_password
-DB_NAME=etf_db
-
-# Telegram Bot
-TELEGRAM_TOKEN=your_telegram_bot_token
-TELEGRAM_CHAT_ID=your_chat_id
-```
-
-> Java 쪽 DB 접속 정보는 `context-datasource.xml`에 직접 기재되어 있습니다. 운영 환경에서는 외부 설정 파일로 분리하는 것을 권장합니다.
