@@ -1,8 +1,8 @@
-package com.kopo.etf.service;
+package com.kopo.etf.calculator.service;
 
 import java.math.BigDecimal;
 
-import com.kopo.etf.vo.CalculatorResultVO;
+import com.kopo.etf.calculator.vo.CalculatorResultVO;
 
 /**
  * 월배당금 계산기 비즈니스 로직 인터페이스 (화면2)

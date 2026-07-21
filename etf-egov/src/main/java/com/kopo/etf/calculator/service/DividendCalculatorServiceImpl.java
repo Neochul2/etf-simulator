@@ -1,4 +1,4 @@
-package com.kopo.etf.service.impl;
+package com.kopo.etf.calculator.service;
 
 import java.math.BigDecimal;
 import java.math.MathContext;
@@ -6,8 +6,7 @@ import java.math.RoundingMode;
 
 import org.springframework.stereotype.Service;
 
-import com.kopo.etf.service.DividendCalculatorService;
-import com.kopo.etf.vo.CalculatorResultVO;
+import com.kopo.etf.calculator.vo.CalculatorResultVO;
 
 /**
  * 월배당금 계산기 구현체 (화면2)

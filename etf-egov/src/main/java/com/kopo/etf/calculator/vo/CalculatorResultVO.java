@@ -1,4 +1,4 @@
-package com.kopo.etf.vo;
+package com.kopo.etf.calculator.vo;
 
 import java.io.Serializable;
 import java.math.BigDecimal;
