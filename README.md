@@ -1,4 +1,6 @@
 # 미국 월배당 ETF 시뮬레이터
+<img width="604" height="791" alt="image" src="https://github.com/user-attachments/assets/8e58b09a-f738-41c7-9e5d-e03587e04c5e" />
+
 
 > Polygon.io 실제 데이터 기반 배당 계산 및 DRIP 복리 시뮬레이션 서비스
 
@@ -48,8 +50,6 @@ FastAPI(Python)가 외부 API로부터 데이터를 수집·적재하고, eGovFr
 | 구분 | 내용 |
 |---|---|
 | 언어 | Java 17 / Python 3.12 |
-| 프레임워크 | eGovFrame 4.3.1 (Spring MVC) / FastAPI 0.115.0 |
-| ORM | MyBatis 3.5.15 (mybatis-spring 2.1.2) |
 | 데이터베이스 | MySQL 8.0.46 (`etf_db`) |
 | WAS | Apache Tomcat 9.0.86 / uvicorn 0.30.6 + systemd |
 | OS / 인프라 | Ubuntu 24.04 LTS / Oracle Cloud VM.Standard.E2.1.Micro |
@@ -171,6 +171,7 @@ etf-simulator/
 ---
 
 ## 아키텍처
+<img width="990" height="656" alt="image" src="https://github.com/user-attachments/assets/049147e4-3ea9-41a6-b327-efb35d182769" />
 
 ```
 [외부 API]                   [FastAPI :8000]              [MySQL etf_db]
