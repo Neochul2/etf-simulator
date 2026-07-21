@@ -4,7 +4,7 @@
 
 <mapper namespace="com.kopo.etf.mapper.PortfolioMapper">
 
-    <select id="selectPortfolioList" resultType="com.kopo.etf.vo.PortfolioVO">
+    <select id="selectPortfolioList" resultType="com.kopo.etf.portfolio.vo.PortfolioVO">
         SELECT
             p.id,
             p.symbol,
@@ -17,7 +17,7 @@
         ORDER BY p.created_at DESC
     </select>
 
-    <insert id="insertPortfolio" parameterType="com.kopo.etf.vo.PortfolioVO"
+    <insert id="insertPortfolio" parameterType="com.kopo.etf.portfolio.vo.PortfolioVO"
             useGeneratedKeys="true" keyProperty="id">
         INSERT INTO portfolio (symbol, invest_amt)
         VALUES (#{symbol}, #{investAmt})

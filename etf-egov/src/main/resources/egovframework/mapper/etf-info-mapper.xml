@@ -13,8 +13,7 @@
         DB 컬럼(snake_case) → VO 필드(camelCase) AS 별칭으로 매핑
         신규: open_price, high_price, low_price, volume, issuer 추가
     -->
-    <select id="selectEtfInfo" parameterType="String" resultType="com.kopo.etf.vo.EtfInfoVO">
-        SELECT
+    <select id="selectEtfInfo" parameterType="String" resultType="com.kopo.etf.info.vo.EtfInfoVO">
             symbol,
             price,
             open_price   AS openPrice,
@@ -37,7 +36,7 @@
         드롭다운에는 symbol, divYield만 사용하지만
         일관성을 위해 전체 컬럼 조회
     -->
-    <select id="selectAllEtfList" resultType="com.kopo.etf.vo.EtfInfoVO">
+    <select id="selectAllEtfList" resultType="com.kopo.etf.info.vo.EtfInfoVO">
         SELECT
             symbol,
             price,

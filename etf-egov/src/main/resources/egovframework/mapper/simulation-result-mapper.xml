@@ -7,7 +7,7 @@
     namespace = Mapper 인터페이스 풀패키지명과 반드시 일치해야 함
     MyBatis가 메서드명(insertSimulationResult)과 id를 자동 매핑
 -->
-<mapper namespace="com.kopo.etf.mapper.SimulationResultMapper">
+<mapper namespace="com.kopo.etf.simulation.vo.SimulationResultVO">
 
     <!--
         시뮬레이션 결과 INSERT
@@ -16,7 +16,7 @@
         - useGeneratedKeys="true" : AUTO_INCREMENT로 생성된 id를 vo.id에 자동 주입
     -->
     <insert id="insertSimulationResult"
-            parameterType="com.kopo.etf.vo.SimulationResultVO"
+            parameterType="com.kopo.etf.simulation.vo.SimulationResultVO"
             useGeneratedKeys="true"
             keyProperty="id">
         INSERT INTO simulation_result (

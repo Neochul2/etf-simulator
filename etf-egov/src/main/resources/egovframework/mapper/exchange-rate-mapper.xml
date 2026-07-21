@@ -8,7 +8,7 @@
         최신 환율 1건 조회
         id DESC: 가장 최근에 upsert된 행 = 실제 최신 저장 데이터
     -->
-    <select id="selectLatestRate" resultType="com.kopo.etf.vo.ExchangeRateVO">
+    <select id="selectLatestRate" resultType="com.kopo.etf.exchange.vo.ExchangeRateVO">
         SELECT
             id,
             base_cur     AS baseCur,

@@ -10,7 +10,7 @@
         ex_div_date(배당락일) 최신순으로 6건만 조회
         (테이블정의서 5-2 참고사항 기준)
     -->
-    <select id="selectRecentDividends" parameterType="String" resultType="com.kopo.etf.vo.EtfDividendVO">
+    <select id="selectRecentDividends" parameterType="String" resultType="com.kopo.etf.info.vo.EtfDividendVO">
         SELECT
             id,
             symbol,
