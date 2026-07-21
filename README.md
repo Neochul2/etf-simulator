@@ -170,6 +170,8 @@ etf-simulator/
 ## 아키텍처
 
 ```
+<img width="1536" height="1024" alt="f9b83db4-3838-44ed-9e74-20ef706c2104" src="https://github.com/user-attachments/assets/58eef2d3-42ed-46cc-a33b-76644de3ba5c" />
+
 [외부 API]                   [FastAPI :8000]              [MySQL etf_db]
 Polygon.io ──────────────→  services/polygon.py    ←──→  etf_info
 수출입은행 API ─────────────→  services/koreaexim.py ←──→  etf_dividend
