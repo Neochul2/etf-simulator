@@ -2,7 +2,7 @@ package com.kopo.etf.info.mapper;
 
 import java.util.List;
 
-import com.kopo.etf.vo.EtfDividendVO;
+import com.kopo.etf.info.vo.EtfDividendVO;
 
 /**
  * etf_dividend 테이블 접근용 Mapper 인터페이스

@@ -16,11 +16,11 @@ import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.ResponseBody;
 import org.springframework.web.client.RestTemplate;
 
+import com.kopo.etf.exchange.service.ExchangeRateService;
+import com.kopo.etf.exchange.vo.ExchangeRateVO;
 import com.kopo.etf.info.service.EtfInfoService;
+import com.kopo.etf.info.vo.EtfDividendVO;
 import com.kopo.etf.info.vo.EtfInfoVO;
-import com.kopo.etf.service.ExchangeRateService;
-import com.kopo.etf.vo.EtfDividendVO;
-import com.kopo.etf.vo.ExchangeRateVO;
 
 @Controller
 public class EtfController {

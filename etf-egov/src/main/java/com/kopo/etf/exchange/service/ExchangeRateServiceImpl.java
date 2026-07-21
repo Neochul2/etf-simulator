@@ -1,12 +1,11 @@
-package com.kopo.etf.service.impl;
+package com.kopo.etf.exchange.service;
 
 import javax.annotation.Resource;
 
 import org.springframework.stereotype.Service;
 
-import com.kopo.etf.mapper.ExchangeRateMapper;
-import com.kopo.etf.service.ExchangeRateService;
-import com.kopo.etf.vo.ExchangeRateVO;
+import com.kopo.etf.exchange.mapper.ExchangeRateMapper;
+import com.kopo.etf.exchange.vo.ExchangeRateVO;
 
 @Service("exchangeRateService")
 public class ExchangeRateServiceImpl implements ExchangeRateService {

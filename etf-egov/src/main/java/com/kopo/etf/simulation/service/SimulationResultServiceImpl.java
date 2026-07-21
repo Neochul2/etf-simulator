@@ -4,7 +4,7 @@ import javax.annotation.Resource;
 
 import org.springframework.stereotype.Service;
 
-import com.kopo.etf.mapper.SimulationResultMapper;
+import com.kopo.etf.simulation.mapper.SimulationResultMapper;
 import com.kopo.etf.simulation.vo.SimulationResultVO;
 
 /**

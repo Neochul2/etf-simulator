@@ -8,8 +8,8 @@ import org.springframework.stereotype.Service;
 
 import com.kopo.etf.info.mapper.EtfDividendMapper;
 import com.kopo.etf.info.mapper.EtfInfoMapper;
+import com.kopo.etf.info.vo.EtfDividendVO;
 import com.kopo.etf.info.vo.EtfInfoVO;
-import com.kopo.etf.vo.EtfDividendVO;
 
 /**
  * ETF 조회 관련 비즈니스 로직 구현체 (화면1)

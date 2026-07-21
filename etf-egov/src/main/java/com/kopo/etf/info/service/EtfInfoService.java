@@ -2,8 +2,8 @@ package com.kopo.etf.info.service;
 
 import java.util.List;
 
+import com.kopo.etf.info.vo.EtfDividendVO;
 import com.kopo.etf.info.vo.EtfInfoVO;
-import com.kopo.etf.vo.EtfDividendVO;
 
 /**
  * ETF 조회 관련 비즈니스 로직 인터페이스 (화면1)

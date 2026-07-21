@@ -16,10 +16,10 @@ import org.springframework.web.client.RestTemplate;
 
 import com.kopo.etf.calculator.service.DividendCalculatorService;
 import com.kopo.etf.calculator.vo.CalculatorResultVO;
+import com.kopo.etf.exchange.service.ExchangeRateService;
+import com.kopo.etf.exchange.vo.ExchangeRateVO;
 import com.kopo.etf.info.service.EtfInfoService;
 import com.kopo.etf.info.vo.EtfInfoVO;
-import com.kopo.etf.service.ExchangeRateService;
-import com.kopo.etf.vo.ExchangeRateVO;
 
 /**
  * 화면2 — 월배당금 계산기 컨트롤러

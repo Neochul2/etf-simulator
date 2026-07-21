@@ -1,6 +1,6 @@
-package com.kopo.etf.service;
+package com.kopo.etf.exchange.service;
 
-import com.kopo.etf.vo.ExchangeRateVO;
+import com.kopo.etf.exchange.vo.ExchangeRateVO;
 
 /**
  * 환율 조회 비즈니스 로직 인터페이스 (화면2·3 공통)

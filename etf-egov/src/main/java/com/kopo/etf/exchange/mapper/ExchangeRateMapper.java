@@ -1,6 +1,6 @@
-package com.kopo.etf.mapper;
+package com.kopo.etf.exchange.mapper;
 
-import com.kopo.etf.vo.ExchangeRateVO;
+import com.kopo.etf.exchange.vo.ExchangeRateVO;
 
 /**
  * exchange_rate 테이블 접근용 Mapper 인터페이스

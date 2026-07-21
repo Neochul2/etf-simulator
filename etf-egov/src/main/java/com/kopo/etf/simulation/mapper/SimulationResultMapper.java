@@ -1,4 +1,4 @@
-package com.kopo.etf.mapper;
+package com.kopo.etf.simulation.mapper;
 
 import com.kopo.etf.simulation.vo.SimulationResultVO;
 

@@ -1,4 +1,4 @@
-package com.kopo.etf.controller;
+package com.kopo.etf.exchange.controller;
 
 import java.net.URI;
 import java.util.HashMap;
@@ -13,8 +13,8 @@ import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.ResponseBody;
 import org.springframework.web.client.RestTemplate;
 
-import com.kopo.etf.service.ExchangeRateService;
-import com.kopo.etf.vo.ExchangeRateVO;
+import com.kopo.etf.exchange.service.ExchangeRateService;
+import com.kopo.etf.exchange.vo.ExchangeRateVO;
 
 /**
  * 환율 조회 컨트롤러 (화면2·3 공통)
